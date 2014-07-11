@@ -201,6 +201,7 @@ class ActivityList(Gtk.ListBox):
 
         self.set_selection_mode(Gtk.SelectionMode.BROWSE)
         self.set_header_func(self.update_header, None)
+        self.set_sort_func(self.sort, None)
 
         color = Gdk.RGBA()
         color.parse('#ebebed')
@@ -217,6 +218,14 @@ class ActivityList(Gtk.ListBox):
             row.set_header(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
         else:
             row.set_header(None)
+
+    def sort(self, row1, row2, unused):
+        if row1.antfile.date > row2.antfile.date:
+            return -1
+        elif row1.antfile.date < row2.antfile.date:
+            return 1
+        else:
+            return 0
 
 class ActivityRow(Gtk.ListBoxRow):
     def __init__(self, antfile):

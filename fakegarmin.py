@@ -120,6 +120,10 @@ class FakeGarmin(GObject.GObject):
         for filetype in FILETYPES:
             files[filetype] = []
 
+        # shuffle the activities list s we don't depend on an ordering
+        # doing it in place is a bit horrible
+        random.shuffle(ACTIVITIES)
+
         for a in ACTIVITIES:
             files[ant.fs.file.File.Identifier.ACTIVITY].append(FakeAntFile(a))
 
