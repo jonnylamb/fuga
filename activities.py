@@ -120,7 +120,7 @@ class Window(Gtk.ApplicationWindow):
             self.left_toolbar.set_title('All activities')
 
             row = self.pane.activity_list.get_selected_row()
-            if row.antfile.exists:
+            if hasattr(row, 'antfile') and row.antfile.exists:
                 self.delete_button.show()
 
             self.pane.revealer.set_reveal_child(False)
