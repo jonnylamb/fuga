@@ -315,7 +315,8 @@ class ActivityMissing(Gtk.Grid):
         label.set_markup('<span font="16">' + self.row.time_str + '</span>')
         self.attach(label, 2, 0, 1, 1)
 
-        label = Gtk.Label('This activity is on your device but hasn\'t been downloaded yet. ' + \
+        label = Gtk.Label('This activity is on your device but hasn\'t been downloaded to ' + \
+                          'your computer yet. ' + \
                           'To view its details and upload it you must download it first.')
         label.set_property('xalign', 0.0)
         label.set_halign(Gtk.Align.START)
