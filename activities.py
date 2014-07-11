@@ -5,7 +5,7 @@ GtkClutter.init([])
 from gi.repository import Gtk, GLib, Gio, Pango, Gdk, GtkChamplain
 
 class Window(Gtk.ApplicationWindow):
-    def __init__(self):
+    def __init__(self, activities):
         Gtk.ApplicationWindow.__init__(self)
 
         self.set_default_size(1000, 600)
@@ -61,9 +61,6 @@ class Window(Gtk.ApplicationWindow):
 
         self.pane.activity_list.connect('row-selected', self.row_selected_cb)
 
-        for activity in self.pane.activity_list.activities:
-            activity.selector_button.connect('toggled', self.activity_toggled_cb)
-
         # keep left pane and toolbar the same width
         hsize_group = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
         hsize_group.add_widget(self.left_toolbar)
@@ -71,6 +68,17 @@ class Window(Gtk.ApplicationWindow):
 
         self.content = NoActivities()
         self.hbox.pack_start(self.content, True, True, 0)
+
+        # add activities
+        self.activities = []
+        for activity in activities:
+            self.add_activity(activity)
+
+    def add_activity(self, antfile):
+        row = ActivityRow(antfile)
+        row.selector_button.connect('toggled', self.activity_toggled_cb)
+        self.pane.activity_list.prepend(row)
+        self.activities.append(row)
 
     def activity_toggled_cb(self, selector):
         if selector.get_active():
@@ -90,7 +98,7 @@ class Window(Gtk.ApplicationWindow):
             self.left_toolbar.get_style_context().add_class('selection-mode')
             self.right_toolbar.get_style_context().add_class('selection-mode')
 
-            for activity in self.pane.activity_list.activities:
+            for activity in self.activities:
                 activity.selector_button.show()
                 activity.selector_button.set_hexpand(not activity.spinner.get_visible())
 
@@ -103,7 +111,7 @@ class Window(Gtk.ApplicationWindow):
             self.left_toolbar.get_style_context().remove_class('selection-mode')
             self.right_toolbar.get_style_context().remove_class('selection-mode')
 
-            for activity in self.pane.activity_list.activities:
+            for activity in self.activities:
                 activity.selector_button.hide()
                 activity.selector_button.set_active(False)
 
@@ -112,7 +120,7 @@ class Window(Gtk.ApplicationWindow):
             self.left_toolbar.set_title('All activities')
 
             row = self.pane.activity_list.get_selected_row()
-            if row.status == ActivityRow.Status.DOWNLOADED:
+            if row.antfile.exists:
                 self.delete_button.show()
 
             self.pane.revealer.set_reveal_child(False)
@@ -123,15 +131,15 @@ class Window(Gtk.ApplicationWindow):
 
         self.hbox.remove(self.content)
 
-        if row.status == ActivityRow.Status.DOWNLOADED:
-            self.content = Activity()
+        if row.antfile.exists:
+            self.content = Activity(row)
             self.delete_button.show()
-        elif row.status == ActivityRow.Status.DOWNLOADING:
-            self.content = ActivityDownloading()
+        else:
+            self.content = ActivityMissing(row)
             self.delete_button.hide()
-        elif row.status == ActivityRow.Status.MISSING:
-            self.content = ActivityMissing()
-            self.delete_button.hide()
+        # elif row.status == ActivityRow.Status.DOWNLOADING:
+        #     self.content = ActivityDownloading()
+        #     self.delete_button.hide()
 
         self.hbox.pack_start(self.content, True, True, 0)
         self.content.show_all()
@@ -202,66 +210,6 @@ class ActivityList(Gtk.ListBox):
         self.set_placeholder(label)
         label.show()
 
-        self.activities = []
-        for i in ['2013-11-27_20-45-22_4_1',
-                  '2013-11-27_21-45-22_4_1',
-                  '2013-12-02_22-50-40_4_2',
-                  '2013-12-02_23-50-40_4_2',
-                  '2013-12-04_22-53-38_4_3',
-                  '2013-12-04_23-53-38_4_3',
-                  '2013-12-06_18-44-34_4_4',
-                  '2013-12-06_19-44-34_4_4',
-                  '2013-12-09_22-30-10_4_5',
-                  '2013-12-09_23-30-10_4_5',
-                  '2013-12-11_21-31-46_4_6',
-                  '2013-12-11_22-31-46_4_6',
-                  '2013-12-22_12-20-30_4_7',
-                  '2013-12-22_13-20-30_4_7',
-                  '2013-12-24_15-49-44_4_8',
-                  '2013-12-24_16-49-44_4_8',
-                  '2013-12-27_12-13-40_4_9',
-                  '2013-12-27_13-13-40_4_9',
-                  '2014-01-02_10-33-56_4_10',
-                  '2014-01-02_11-33-56_4_10',
-                  '2014-01-04_12-08-40_4_11',
-                  '2014-01-04_13-08-40_4_11',
-                  '2014-01-10_13-23-28_4_12',
-                  '2014-01-10_14-23-28_4_12',
-                  '2014-01-12_11-28-16_4_13',
-                  '2014-01-12_12-28-16_4_13',
-                  '2014-01-13_21-28-02_4_14',
-                  '2014-01-13_21-52-40_4_15',
-                  '2014-01-16_09-31-40_4_16',
-                  '2014-01-16_10-46-22_4_17',
-                  '2014-01-17_10-56-26_4_18',
-                  '2014-01-17_18-47-38_4_19',
-                  '2014-01-18_23-51-44_4_20',
-                  '2014-01-20_13-37-42_4_21',
-                  '2014-01-20_13-37-44_4_22',
-                  '2014-01-20_13-37-46_4_23',
-                  '2014-01-20_13-37-48_4_24',
-                  '2014-01-20_13-37-50_4_25',
-                  '2014-01-20_13-37-52_4_26',
-                  '2014-01-20_13-37-52_4_27',
-                  '2014-01-21_10-47-20_4_28',
-                  '2014-01-23_21-02-22_4_29',
-                  '2014-01-25_11-39-50_4_30',
-                  '2014-01-25_16-35-26_4_31',
-                  '2014-01-27_11-49-02_4_32',
-                  '2014-01-29_10-02-24_4_33',
-                  '2014-01-30_22-34-32_4_34',
-                  '2014-02-02_22-18-36_4_35',
-                  '2014-02-03_16-24-16_4_36',
-                  '2014-02-04_16-14-48_4_37',
-                  '2014-02-05_13-59-28_4_38',
-                  '2014-02-05_17-08-52_4_39',
-                  '2014-02-06_15-50-08_4_40',
-                  '2014-02-07_18-19-46_4_41']:
-            row = ActivityRow(i)
-            self.prepend(row)
-
-            self.activities.append(row)
-
     def update_header(self, row, before_row, unused):
         current = row.get_header()
 
@@ -271,14 +219,10 @@ class ActivityList(Gtk.ListBox):
             row.set_header(None)
 
 class ActivityRow(Gtk.ListBoxRow):
-    # TODO
-    class Status:
-        DOWNLOADED = 0
-        DOWNLOADING = 1
-        MISSING = 2
-
-    def __init__(self, title):
+    def __init__(self, antfile):
         Gtk.ListBoxRow.__init__(self)
+
+        self.antfile = antfile
 
         grid = Gtk.Grid(margin=6)
         grid.set_column_spacing(10)
@@ -287,8 +231,8 @@ class ActivityRow(Gtk.ListBoxRow):
         # TODO
         image = Gtk.Image(icon_name='preferences-system-time-symbolic', icon_size=Gtk.IconSize.DND)
 
-        (self.date_str, self.time_str) = title.split('_')[0:2]
-        self.time_str = self.time_str.replace('-', ':')
+        self.date_str = antfile.date.strftime('%Y-%m-%d')
+        self.time_str = antfile.date.strftime('%H:%M:%S')
         markup = '<b>%s</b>\n<small>%s</small>' % (self.date_str, self.time_str)
 
         label = Gtk.Label()
@@ -316,26 +260,24 @@ class ActivityRow(Gtk.ListBoxRow):
         grid.attach(self.selector_button, 3, 0, 1, 1)
         # don't show selector button yet
 
-        # TODO
-        self.status = random.randint(0, 2)
-        if self.status == ActivityRow.Status.DOWNLOADED:
-            pass # already done
-        elif self.status == ActivityRow.Status.DOWNLOADING:
-            self.spinner.show()
-            self.spinner.start()
-            label.set_sensitive(False)
-            image.destroy()
-            image = Gtk.Image(icon_name='folder-download-symbolic', icon_size=Gtk.IconSize.DND)
-            grid.attach(image, 0, 0, 1, 1)
-        elif self.status == ActivityRow.Status.MISSING:
+        if not self.antfile.exists:
             label.set_sensitive(False)
             image.destroy()
             image = Gtk.Image(icon_name='emblem-important-symbolic', icon_size=Gtk.IconSize.DND)
             grid.attach(image, 0, 0, 1, 1)
+        # elif self.status == ActivityRow.Status.DOWNLOADING:
+        #     self.spinner.show()
+        #     self.spinner.start()
+        #     label.set_sensitive(False)
+        #     image.destroy()
+        #     image = Gtk.Image(icon_name='folder-download-symbolic', icon_size=Gtk.IconSize.DND)
+        #     grid.attach(image, 0, 0, 1, 1)
 
 class ActivityMissing(Gtk.Grid):
-    def __init__(self):
+    def __init__(self, row):
         Gtk.Grid.__init__(self)
+
+        self.row = row
 
         self.set_row_spacing(12)
         self.set_column_spacing(16)
@@ -483,8 +425,10 @@ class ActivityDownloading(Gtk.Box):
         tool_item.add(button)
 
 class Activity(Gtk.ScrolledWindow):
-    def __init__(self):
+    def __init__(self, row):
         Gtk.ScrolledWindow.__init__(self)
+
+        self.row = row
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(box)
