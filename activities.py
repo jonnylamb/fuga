@@ -295,7 +295,7 @@ class ActivityMissing(Gtk.Grid):
         label.set_valign(Gtk.Align.CENTER)
         label.set_margin_left(6)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">2014-02-07</span>')
+        label.set_markup('<span font="16">' + self.row.date_str + '</span>')
         self.attach(label, 1, 0, 1, 1)
 
         label = Gtk.Label('')
@@ -303,7 +303,7 @@ class ActivityMissing(Gtk.Grid):
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">18:19:46</span>')
+        label.set_markup('<span font="16">' + self.row.time_str + '</span>')
         self.attach(label, 2, 0, 1, 1)
 
         label = Gtk.Label('This activity is on your device but hasn\'t been downloaded yet. ' + \
@@ -373,7 +373,7 @@ class ActivityDownloading(Gtk.Box):
         label.set_valign(Gtk.Align.CENTER)
         label.set_margin_left(6)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">2014-02-07</span>')
+        label.set_markup('<span font="16">' + self.row.date_str + '</span>')
         grid.attach(label, 1, 0, 1, 1)
 
         label = Gtk.Label('')
@@ -381,7 +381,7 @@ class ActivityDownloading(Gtk.Box):
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">18:19:46</span>')
+        label.set_markup('<span font="16">' + self.row.time_str + '</span>')
         grid.attach(label, 2, 0, 1, 1)
 
         label = Gtk.Label('This activity is on your device but needs to be downloaded before its ' + \
@@ -457,7 +457,7 @@ class Activity(Gtk.ScrolledWindow):
         label.set_valign(Gtk.Align.CENTER)
         label.set_margin_left(6)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">2014-02-07</span>')
+        label.set_markup('<span font="16">' + self.row.date_str + '</span>')
         grid.attach(label, 1, 0, 1, 1)
 
         label = Gtk.Label('')
@@ -465,7 +465,7 @@ class Activity(Gtk.ScrolledWindow):
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">18:19:46</span>')
+        label.set_markup('<span font="16">' + self.row.time_str +'</span>')
         grid.attach(label, 2, 0, 1, 1)
 
         row = 1
