@@ -1,9 +1,14 @@
+import os
 import pickle
 
 from garmin import Garmin
+from fakegarmin import FakeGarmin
 import ant.fs.file
 
-g = Garmin()
+if os.getenv('FAKE_GARMIN'):
+    g = FakeGarmin()
+else:
+    g = Garmin()
 
 statuses = {
     Garmin.Status.NONE: 'none',
@@ -23,7 +28,7 @@ def files_cb(g, p):
     activities = files[ant.fs.file.File.Identifier.ACTIVITY]
 
     for activity in activities:
-        print activity.antfile.get_date()
+        print activity.date
         print ' - filename:', activity.path
         print ' - exists:', activity.exists
 

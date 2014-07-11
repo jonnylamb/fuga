@@ -125,8 +125,8 @@ class AntFile(object):
     def __init__(self, device, antfile):
         self.antfile = antfile
 
-        self.filename = str.format("{0}_{1}_{2}.fit",
-            self.antfile.get_date().strftime("%Y-%m-%d_%H-%M-%S"), #, time.gmtime()), TODO
+        self.filename = '{0}_{1}_{2}.fit'.format(
+            self.date.strftime("%Y-%m-%d_%H-%M-%S"), #, time.gmtime()), TODO
             self.antfile.get_fit_sub_type(),
             self.antfile.get_fit_file_number())
 
@@ -135,6 +135,10 @@ class AntFile(object):
     @property
     def exists(self):
         return os.path.exists(self.path)
+
+    @property
+    def date(self):
+        return self.antfile.get_date()
 
 class Garmin(ant.fs.manager.Application,
              GObject.GObject):
@@ -147,6 +151,7 @@ class Garmin(ant.fs.manager.Application,
         AUTHENTICATION = 2
         AUTHENTICATION_FAILED = 3
         CONNECTED = 4
+        DISCONNECTED = 5
 
     __gsignals__ = {
         'status-changed': (GObject.SIGNAL_RUN_FIRST, None,
