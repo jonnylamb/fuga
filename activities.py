@@ -23,13 +23,14 @@ class Window(Gtk.ApplicationWindow):
         titlebar_box.pack_start(self.left_toolbar, False, False, 0)
 
         # select button
-        select_button = Gtk.ToggleButton()
-        select_button.set_focus_on_click(False)
+        self.select_button = Gtk.ToggleButton()
+        self.select_button.set_focus_on_click(False)
+        self.select_button.set_sensitive(False)
         image = Gtk.Image(icon_name='object-select-symbolic', icon_size=Gtk.IconSize.MENU)
-        select_button.set_image(image)
-        self.left_toolbar.pack_end(select_button)
+        self.select_button.set_image(image)
+        self.left_toolbar.pack_end(self.select_button)
 
-        select_button.connect('toggled', self.select_toggled_cb)
+        self.select_button.connect('toggled', self.select_toggled_cb)
         self.num_selected = 0
 
         # right toolbar
@@ -47,7 +48,7 @@ class Window(Gtk.ApplicationWindow):
 
         # keep all menu buttons the same height
         vsize_group = Gtk.SizeGroup(Gtk.SizeGroupMode.VERTICAL)
-        vsize_group.add_widget(select_button)
+        vsize_group.add_widget(self.select_button)
         vsize_group.add_widget(self.delete_button)
 
         # content box
@@ -79,6 +80,8 @@ class Window(Gtk.ApplicationWindow):
         row.selector_button.connect('toggled', self.activity_toggled_cb)
         self.pane.activity_list.prepend(row)
         self.activities.append(row)
+
+        self.select_button.set_sensitive(True)
 
     def activity_toggled_cb(self, selector):
         if selector.get_active():
