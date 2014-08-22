@@ -34,7 +34,7 @@ class Device(object):
 
     PROFILE_VERSION = 1
     PROFILE_VERSION_FILE = 'version'
-    PASSKEY_FILE = 'passkey'
+    PASSKEY_FILE = 'authfile'
     NAME_FILE = 'name'
 
     def __init__(self, basedir, serial, name):
