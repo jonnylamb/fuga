@@ -1,3 +1,4 @@
+import os
 import pickle
 
 from gi.repository import Gtk, GLib, Gio
@@ -6,6 +7,7 @@ import ant.fs.file
 
 from activities import Window
 from fakegarmin import FakeGarmin
+from garmin import Garmin
 
 class Run(Gtk.Application):
     def __init__(self):
@@ -17,12 +19,15 @@ class Run(Gtk.Application):
         self.connect('activate', self.activate_cb)
 
     def activate_cb(self, data=None):
+        if 'FAKE_GARMIN' in os.environ:
+            g = FakeGarmin()
+        else:
+            g = Garmin()
 
-        # TODO: in another thread
-        g = FakeGarmin()
         def status_changed(garmin, status):
             print 'new status:', status
         g.connect('status-changed', status_changed)
+
         def files(garmin, p):
             ant_files = pickle.loads(p)
             activities = ant_files[ant.fs.file.File.Identifier.ACTIVITY]
@@ -30,4 +35,5 @@ class Run(Gtk.Application):
             self.add_window(window)
             window.show_all()
         g.connect('files', files)
+
         g.start()
