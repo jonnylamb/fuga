@@ -120,7 +120,7 @@ class FakeGarmin(GObject.GObject):
         for filetype in FILETYPES:
             files[filetype] = []
 
-        # shuffle the activities list s we don't depend on an ordering
+        # shuffle the activities list as we don't depend on an ordering.
         # doing it in place is a bit horrible
         random.shuffle(ACTIVITIES)
 
