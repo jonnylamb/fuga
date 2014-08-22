@@ -12,18 +12,19 @@ import ant.fs.file
 import utils
 
 DIRECTORIES = {
-    ".":          ant.fs.file.File.Identifier.DEVICE,
-    "activities": ant.fs.file.File.Identifier.ACTIVITY,
-    "courses":    ant.fs.file.File.Identifier.COURSE,
-    #"profile":   ant.fs.file.File.Identifier.?
-    #"goals?":    ant.fs.file.File.Identifier.GOALS,
-    #"bloodprs":  ant.fs.file.File.Identifier.BLOOD_PRESSURE,
-    #"summaries": ant.fs.file.File.Identifier.ACTIVITY_SUMMARY,
-    "settings":   ant.fs.file.File.Identifier.SETTING,
-    "sports":     ant.fs.file.File.Identifier.SPORT_SETTING,
-    "totals":     ant.fs.file.File.Identifier.TOTALS,
-    "weight":     ant.fs.file.File.Identifier.WEIGHT,
-    "workouts":   ant.fs.file.File.Identifier.WORKOUT}
+    ".":            ant.fs.file.File.Identifier.DEVICE,
+    "activities":   ant.fs.file.File.Identifier.ACTIVITY,
+    "courses":      ant.fs.file.File.Identifier.COURSE,
+    "monitoring_b": ant.fs.file.File.Identifier.MONITORING_B,
+    #"profile":     ant.fs.file.File.Identifier.?
+    #"goals?":      ant.fs.file.File.Identifier.GOALS,
+    #"bloodprs":    ant.fs.file.File.Identifier.BLOOD_PRESSURE,
+    #"summaries":   ant.fs.file.File.Identifier.ACTIVITY_SUMMARY,
+    "settings":     ant.fs.file.File.Identifier.SETTING,
+    "sports":       ant.fs.file.File.Identifier.SPORT,
+    "totals":       ant.fs.file.File.Identifier.TOTALS,
+    "weight":       ant.fs.file.File.Identifier.WEIGHT,
+    "workouts":     ant.fs.file.File.Identifier.WORKOUT}
 
 FILETYPES = dict((v, k) for (k, v) in DIRECTORIES.items())
 
