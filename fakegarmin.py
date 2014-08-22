@@ -124,7 +124,7 @@ class FakeGarmin(GObject.GObject):
         # doing it in place is a bit horrible
         random.shuffle(ACTIVITIES)
 
-        if not os.getenv('FAKE_GARMIN_NO_ACTIVITIES'):
+        if 'FAKE_GARMIN_NO_ACTIVITIES' not in os.environ:
             for a in ACTIVITIES:
                 files[ant.fs.file.File.Identifier.ACTIVITY].append(FakeAntFile(a))
 
