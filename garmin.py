@@ -4,9 +4,6 @@ import array
 import time
 import pickle
 
-# TODO
-sys.path.append('/home/jonny/src/garmin/')
-
 from gi.repository import GLib, GObject
 
 import ant.fs.manager
