@@ -1,8 +1,11 @@
 import random
+from threading import Thread
 
-from gi.repository import GtkClutter
+from gi.repository import GtkClutter, Clutter
 GtkClutter.init([])
-from gi.repository import Gtk, GLib, Gio, Pango, Gdk, GtkChamplain
+from gi.repository import Gtk, GLib, Gio, Pango, Gdk, GtkChamplain, Champlain
+
+import fitparse
 
 class Window(Gtk.ApplicationWindow):
     def __init__(self, activities):
@@ -481,18 +484,15 @@ class Activity(Gtk.ScrolledWindow):
         label.set_markup('<span font="16">' + self.row.time_str +'</span>')
         grid.attach(label, 2, 0, 1, 1)
 
-        row = 1
-        col = 0
-
         # TODO: details
 
-
-        embed = GtkChamplain.Embed()
-        view = embed.get_view()
-        view.center_on(41.892916, 12.48252)
-        view.set_property('zoom-level', 15)
-        grid.attach(embed, 0, 2, 3, 1)
-        embed.show_all()
+        # map overlay
+        self.embed = GtkChamplain.Embed()
+        view = self.embed.get_view()
+        view.set_property('zoom-level', 4)
+        self.draw_route()
+        grid.attach(self.embed, 0, 2, 3, 1)
+        self.embed.show_all()
 
         # toolbar
         bar = Gtk.Toolbar()
@@ -510,3 +510,36 @@ class Activity(Gtk.ScrolledWindow):
         button = Gtk.Button('Upload')
         tool_item.add(button)
 
+    def draw_route(self):
+        fit = fitparse.FitFile(self.row.antfile.path,
+            data_processor=fitparse.StandardUnitsDataProcessor())
+
+        def done(layer):
+            view = self.embed.get_view()
+            view.add_layer(layer)
+            view.ensure_layers_visible(True)
+            view.set_property('zoom-level', 13)
+
+        def func():
+            fit.parse()
+
+            layer = Champlain.PathLayer()
+
+            for m in fit.messages:
+                if m.name != 'record':
+                    continue
+
+                vals = m.get_values()
+                try:
+                    coord = Champlain.Coordinate.new_full(
+                        vals['position_lat'],
+                        vals['position_long'])
+                    layer.add_node(coord)
+                except KeyError:
+                    continue
+
+            # let's just be super sure we aren't going to mess with the UI
+            # outside of the main thread
+            GLib.idle_add(done, layer)
+
+        Thread(target=func).start()
