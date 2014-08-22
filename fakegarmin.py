@@ -91,21 +91,21 @@ class FakeGarmin(GObject.GObject):
 
         self.authentication_fail = authentication_fail
 
-        self.wait_time = int(os.getenv('FAKE_GARMIN_TIME', 1))
+        self.wait_time = int(os.environ.get('FAKE_GARMIN_TIME', 200))
 
     def start(self):
         self.emit('status-changed', Garmin.Status.CONNECTING)
 
-        GLib.timeout_add_seconds(self.wait_time, self.authentication_cb)
+        GLib.timeout_add(self.wait_time, self.authentication_cb)
         self.loop.run()
 
     def authentication_cb(self):
         self.emit('status-changed', Garmin.Status.AUTHENTICATION)
 
         if self.authentication_fail:
-            GLib.timeout_add_seconds(self.wait_time, self.authentication_fail_cb)
+            GLib.timeout_add(self.wait_time, self.authentication_fail_cb)
         else:
-            GLib.timeout_add_seconds(self.wait_time, self.connected_cb)
+            GLib.timeout_add(self.wait_time, self.connected_cb)
 
     def authentication_fail_cb(self):
         self.emit('status-changed', Garmin.Status.AUTHENTICATION_FAILED)
@@ -113,7 +113,7 @@ class FakeGarmin(GObject.GObject):
     def connected_cb(self):
         self.emit('status-changed', Garmin.Status.CONNECTED)
 
-        GLib.timeout_add_seconds(self.wait_time, self.files_cb)
+        GLib.timeout_add(self.wait_time, self.files_cb)
 
     def files_cb(self):
         files = {}
