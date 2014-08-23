@@ -489,7 +489,6 @@ class Activity(Gtk.ScrolledWindow):
         # map overlay
         self.embed = GtkChamplain.Embed()
         view = self.embed.get_view()
-        view.set_property('zoom-level', 4)
         self.draw_route()
         grid.attach(self.embed, 0, 2, 3, 1)
         self.embed.show_all()
