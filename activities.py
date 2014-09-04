@@ -8,8 +8,10 @@ from gi.repository import Gtk, GLib, Gio, Pango, Gdk, GtkChamplain, Champlain
 import fitparse
 
 class Window(Gtk.ApplicationWindow):
-    def __init__(self, activities):
+    def __init__(self):
         Gtk.ApplicationWindow.__init__(self)
+
+        self.activities = []
 
         self.set_default_size(1000, 600)
         self.set_title('Run')
@@ -72,11 +74,6 @@ class Window(Gtk.ApplicationWindow):
 
         self.content = NoActivities()
         self.hbox.pack_start(self.content, True, True, 0)
-
-        # add activities
-        self.activities = []
-        for activity in activities:
-            self.add_activity(activity)
 
     def add_activity(self, antfile):
         row = ActivityRow(antfile)

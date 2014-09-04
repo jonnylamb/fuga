@@ -31,7 +31,11 @@ class Run(Gtk.Application):
         def files(garmin, p):
             ant_files = pickle.loads(p)
             activities = ant_files[ant.fs.file.File.Identifier.ACTIVITY]
-            window = Window(activities)
+            window = Window()
+
+            for activity in activities:
+                window.add_activity(activity)
+
             self.add_window(window)
             window.show_all()
         g.connect('files', files)
