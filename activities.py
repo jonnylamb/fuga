@@ -164,13 +164,13 @@ class Window(Gtk.ApplicationWindow):
         self.hbox.remove(self.content)
 
         if row.antfile.exists:
-            self.content = Activity(row)
+            self.content = ActivityDetails(row)
             if not self.select_button.get_active():
                 self.delete_button.show()
         else:
-            self.content = ActivityMissing(row)
+            self.content = ActivityMissingDetails(row)
             self.delete_button.hide()
-        # elif row.status == ActivityRow.Status.DOWNLOADING:
+        # elif row.status == Activity.Status.DOWNLOADING:
         #     self.content = ActivityDownloading()
         #     self.delete_button.hide()
 
@@ -326,7 +326,7 @@ class ActivityRow(Gtk.ListBoxRow):
     def load_fit(self):
         self.fit = fit.Fit(self.antfile.path)
 
-class ActivityMissing(Gtk.Grid):
+class ActivityMissingDetails(Gtk.Grid):
     def __init__(self, row):
         Gtk.Grid.__init__(self)
 
@@ -403,7 +403,7 @@ class NoActivities(Gtk.Grid):
         label.set_line_wrap(True)
         self.attach(label, 0, 1, 2, 1)
 
-class ActivityDownloading(Gtk.Box):
+class ActivityDownloadingDetails(Gtk.Box):
     def __init__(self):
         Gtk.Box.__init__(self)
 
@@ -478,7 +478,7 @@ class ActivityDownloading(Gtk.Box):
         button = Gtk.Button('Cancel download')
         tool_item.add(button)
 
-class Activity(Gtk.ScrolledWindow):
+class ActivityDetails(Gtk.ScrolledWindow):
     def __init__(self, row):
         Gtk.ScrolledWindow.__init__(self)
 
