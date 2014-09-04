@@ -17,7 +17,7 @@ class Window(Gtk.ApplicationWindow):
 
         self.activities = []
 
-        self.set_default_size(1000, 600)
+        self.set_default_size(1000, 700)
         self.set_title('Run')
 
         #  titlebar
@@ -491,23 +491,37 @@ class Activity(Gtk.ScrolledWindow):
         label.set_valign(Gtk.Align.CENTER)
         label.set_margin_left(6)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">' + self.row.date_str + '</span>')
         grid.attach(label, 1, 0, 1, 1)
+        self.distance_label = label
 
         label = Gtk.Label('')
         label.set_hexpand(True)
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">' + self.row.time_str +'</span>')
         grid.attach(label, 2, 0, 1, 1)
+        self.elapsed_time_label = label
 
-        # TODO: details
+        label = Gtk.Label('')
+        label.set_hexpand(True)
+        label.set_halign(Gtk.Align.START)
+        label.set_valign(Gtk.Align.CENTER)
+        label.set_margin_left(6)
+        label.set_property('xalign', 0.0)
+        grid.attach(label, 1, 1, 1, 1)
+        self.elevation_label = label
+
+        label = Gtk.Label('')
+        label.set_hexpand(True)
+        label.set_halign(Gtk.Align.START)
+        label.set_valign(Gtk.Align.CENTER)
+        label.set_property('xalign', 0.0)
+        grid.attach(label, 2, 1, 1, 1)
+        self.moving_time_label = label
 
         # map overlay
         self.embed = GtkChamplain.Embed()
         view = self.embed.get_view()
-        self.draw_route()
         grid.attach(self.embed, 0, 2, 3, 1)
         self.embed.show_all()
 
@@ -527,26 +541,16 @@ class Activity(Gtk.ScrolledWindow):
         button = Gtk.Button('Upload')
         tool_item.add(button)
 
-    def draw_route(self):
-        fit = fitparse.FitFile(self.row.antfile.path,
-            data_processor=fitparse.StandardUnitsDataProcessor())
+        # once parsed fill in the blanks
+        self.fill_details()
 
-        def done(layer):
-            view = self.embed.get_view()
-            view.add_layer(layer)
-            view.ensure_layers_visible(True)
-            view.set_property('zoom-level', 13)
+    def fill_details(self):
 
-        def func():
-            fit.parse()
-
+        def parsed_cb(fit):
             layer = Champlain.PathLayer()
 
-            for m in fit.messages:
-                if m.name != 'record':
-                    continue
-
-                vals = m.get_values()
+            for message in fit.records():
+                vals = message.get_values()
                 try:
                     coord = Champlain.Coordinate.new_full(
                         vals['position_lat'],
@@ -555,8 +559,29 @@ class Activity(Gtk.ScrolledWindow):
                 except KeyError:
                     continue
 
-            # let's just be super sure we aren't going to mess with the UI
-            # outside of the main thread
-            GLib.idle_add(done, layer)
+            view = self.embed.get_view()
+            view.add_layer(layer)
+            view.ensure_layers_visible(True)
+            view.set_property('zoom-level', 13)
 
-        Thread(target=func).start()
+            # now labels
+            self.distance_label.set_markup('<span font="16">%.1f km</span>\n' \
+                '<span color="gray">Distance</span>' % (self.row.fit.get_distance() / 1000))
+
+            hours, mins, secs = self.row.fit.get_elapsed_time()
+            self.elapsed_time_label.set_markup('<span font="16">%d:%02d:%02d</span>\n' \
+                '<span color="gray">Elapsed Time</span>' % (hours, mins, secs))
+
+            elevation = self.row.fit.get_elevation()
+            self.elevation_label.set_markup('%dm\n' \
+                '<span color="gray">Elevation</span>' % elevation)
+
+            hours, mins, secs = self.row.fit.get_moving_time()
+            self.moving_time_label.set_markup('%d:%02d:%02d\n' \
+                '<span color="gray">Moving Time</span>' % (hours, mins, secs))
+
+        if self.row.fit.parsed:
+            parsed_cb(self.row.fit)
+        else:
+            self.row.fit.connect('parsed', parsed_cb)
+            self.row.fit.parse()
