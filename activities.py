@@ -147,7 +147,8 @@ class Window(Gtk.ApplicationWindow):
 
         if row.antfile.exists:
             self.content = Activity(row)
-            self.delete_button.show()
+            if not self.select_button.get_active():
+                self.delete_button.show()
         else:
             self.content = ActivityMissing(row)
             self.delete_button.hide()
