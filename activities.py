@@ -7,6 +7,8 @@ from gi.repository import Gtk, GLib, Gio, Pango, Gdk, GtkChamplain, Champlain
 
 import fitparse
 
+import fit
+
 class Window(Gtk.ApplicationWindow):
     def __init__(self, config):
         Gtk.ApplicationWindow.__init__(self)
@@ -248,6 +250,7 @@ class ActivityRow(Gtk.ListBoxRow):
 
         self.config = config
         self.antfile = antfile
+        self.fit = None
 
         grid = Gtk.Grid(margin=6)
         grid.set_column_spacing(10)
@@ -290,6 +293,8 @@ class ActivityRow(Gtk.ListBoxRow):
             image.destroy()
             image = Gtk.Image(icon_name='emblem-important-symbolic', icon_size=Gtk.IconSize.DND)
             grid.attach(image, 0, 0, 1, 1)
+        else:
+            self.load_fit()
         # elif self.status == ActivityRow.Status.DOWNLOADING:
         #     self.spinner.show()
         #     self.spinner.start()
@@ -297,6 +302,9 @@ class ActivityRow(Gtk.ListBoxRow):
         #     image.destroy()
         #     image = Gtk.Image(icon_name='folder-download-symbolic', icon_size=Gtk.IconSize.DND)
         #     grid.attach(image, 0, 0, 1, 1)
+
+    def load_fit(self):
+        self.fit = fit.Fit(self.antfile.path)
 
 class ActivityMissing(Gtk.Grid):
     def __init__(self, row):
