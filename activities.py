@@ -83,6 +83,15 @@ class Window(Gtk.ApplicationWindow):
         self.pane.activity_list.prepend(row)
         self.activities.append(row)
 
+        def sort(row1, row2):
+            if row1.antfile.date > row2.antfile.date:
+                return -1
+            elif row1.antfile.date < row2.antfile.date:
+                return 1
+            else:
+                return 0
+        self.activities.sort(sort)
+
         self.select_button.set_sensitive(True)
 
     def activity_toggled_cb(self, selector):
