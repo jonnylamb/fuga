@@ -8,6 +8,7 @@ from gi.repository import Gtk, GLib, Gio, Pango, Gdk, GtkChamplain, Champlain
 import fitparse
 
 import fit
+import strava
 
 class Window(Gtk.ApplicationWindow):
     def __init__(self, config):
@@ -266,6 +267,10 @@ class ActivityRow(Gtk.ListBoxRow):
         self.config = config
         self.antfile = antfile
         self.fit = None
+
+        self.strava_id = None
+        if config.has_option(antfile.filename, 'strava_id'):
+            self.strava_id = config.get(antfile.filename, 'strava_id')
 
         grid = Gtk.Grid(margin=6)
         grid.set_column_spacing(10)
@@ -554,10 +559,18 @@ class Activity(Gtk.ScrolledWindow):
         tool_item = Gtk.ToolItem()
         bar.insert(tool_item, -1)
         button = Gtk.Button('Upload')
+        if self.row.strava_id:
+            button.set_label('View activity on Strava')
         tool_item.add(button)
+        button.connect('clicked', self.upload_view_clicked)
 
         # once parsed fill in the blanks
         self.fill_details()
+
+    def upload_view_clicked(self, data=None):
+        if self.row.strava_id:
+            url = strava.ACTIVITY_URL.format(self.row.strava_id)
+            Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
 
     def fill_details(self):
 
