@@ -20,7 +20,7 @@ class Window(Gtk.ApplicationWindow):
 
         # left toolbar
         self.left_toolbar = Gtk.HeaderBar()
-        self.left_toolbar.set_title('All ativities')
+        self.left_toolbar.set_title('All activities')
         self.left_toolbar.get_style_context().add_class(Gtk.STYLE_CLASS_TITLEBAR)
         self.left_toolbar.get_style_context().add_class('contacts-left-header-bar')
         titlebar_box.pack_start(self.left_toolbar, False, False, 0)
