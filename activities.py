@@ -8,8 +8,10 @@ from gi.repository import Gtk, GLib, Gio, Pango, Gdk, GtkChamplain, Champlain
 import fitparse
 
 class Window(Gtk.ApplicationWindow):
-    def __init__(self):
+    def __init__(self, config):
         Gtk.ApplicationWindow.__init__(self)
+
+        self.config = config
 
         self.activities = []
 
@@ -76,7 +78,7 @@ class Window(Gtk.ApplicationWindow):
         self.hbox.pack_start(self.content, True, True, 0)
 
     def add_activity(self, antfile):
-        row = ActivityRow(antfile)
+        row = ActivityRow(self.config, antfile)
         row.selector_button.connect('toggled', self.activity_toggled_cb)
         self.pane.activity_list.prepend(row)
         self.activities.append(row)
@@ -231,9 +233,10 @@ class ActivityList(Gtk.ListBox):
             return 0
 
 class ActivityRow(Gtk.ListBoxRow):
-    def __init__(self, antfile):
+    def __init__(self, config, antfile):
         Gtk.ListBoxRow.__init__(self)
 
+        self.config = config
         self.antfile = antfile
 
         grid = Gtk.Grid(margin=6)
