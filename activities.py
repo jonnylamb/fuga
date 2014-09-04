@@ -94,7 +94,22 @@ class Window(Gtk.ApplicationWindow):
                 return 0
         self.activities.sort(sort)
 
+        #self.parse_all()
+
         self.select_button.set_sensitive(True)
+
+    def parse_all(self, data=None):
+        def idle():
+            for activity in self.activities:
+                if not activity.fit:
+                    continue
+
+                if not activity.fit.parsed:
+                    activity.fit.connect('parsed', self.parse_all)
+                    activity.fit.parse()
+                    return
+
+        GLib.idle_add(idle)
 
     def activity_toggled_cb(self, selector):
         if selector.get_active():
