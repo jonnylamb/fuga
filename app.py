@@ -57,8 +57,9 @@ class Run(Gtk.Application):
         if os.path.exists(CONFIG_PATH):
             config.read(CONFIG_PATH)
 
-        return config
+        def save_config():
+            with open(CONFIG_PATH, 'w') as configfile:
+                config.write(configfile)
+        config.save = save_config
 
-    def write_config(self):
-        with open(CONFIG_PATH, 'w') as configfile:
-            config.write(configfile)
+        return config
