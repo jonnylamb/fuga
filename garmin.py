@@ -131,10 +131,6 @@ class AntFile(object):
         self.path = os.path.join(device.path, FILETYPES[antfile.get_fit_sub_type()], self.filename)
 
     @property
-    def exists(self):
-        return os.path.exists(self.path)
-
-    @property
     def date(self):
         return self.antfile.get_date()
 

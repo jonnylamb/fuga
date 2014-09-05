@@ -62,7 +62,6 @@ class FakeAntFile(object):
         # todo
         self.path = os.path.join(GLib.get_user_config_dir(),
             'garmin-extractor', '3868484997', FILETYPES[int(subtype)], self.filename)
-        self.exists = os.path.exists(self.path)
 
 class FakeGarmin(GObject.GObject):
 

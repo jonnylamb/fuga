@@ -1,9 +1,10 @@
+import os
 import random
 from threading import Thread
 
 from gi.repository import GtkClutter, Clutter
 GtkClutter.init([])
-from gi.repository import Gtk, GLib, Gio, Pango, Gdk, GtkChamplain, Champlain
+from gi.repository import Gtk, GLib, GObject, Gio, Pango, Gdk, GtkChamplain, Champlain
 
 import fitparse
 
@@ -86,14 +87,7 @@ class Window(Gtk.ApplicationWindow):
         self.pane.activity_list.prepend(row)
         self.activities.append(row)
 
-        def sort(row1, row2):
-            if row1.antfile.date > row2.antfile.date:
-                return -1
-            elif row1.antfile.date < row2.antfile.date:
-                return 1
-            else:
-                return 0
-        self.activities.sort(sort)
+        self.activities.sort(Activity.sort_func)
 
         # not at all necessary to enable unless the listview row starts
         # showing actual details about the activity
@@ -104,12 +98,12 @@ class Window(Gtk.ApplicationWindow):
     def parse_all(self, unused=None):
         def idle():
             for activity in self.activities:
-                if not activity.fit:
+                if not activity.downloaded:
                     continue
 
-                if activity.fit.status is not fit.Fit.Status.PARSED:
-                    activity.fit.connect('status-changed', self.parse_all)
-                    activity.fit.parse()
+                if activity.status is Activity.Status.DOWNLOADED:
+                    activity.connect('status-changed', self.parse_all)
+                    activity.parse()
                     return
 
         GLib.idle_add(idle)
@@ -153,34 +147,71 @@ class Window(Gtk.ApplicationWindow):
 
             self.left_toolbar.set_title('All activities')
 
-            row = self.pane.activity_list.get_selected_row()
-            if row.antfile.exists:
-                self.delete_button.show()
+            activity = self.pane.activity_list.get_selected_row()
+            self.delete_button.set_visible(
+                activity.status is Activity.Status.PARSED)
 
             self.pane.revealer.set_reveal_child(False)
 
-    def row_selected_cb(self, activity_list, row):
-        if not row:
+    def row_selected_cb(self, activity_list, activity):
+        if not activity:
             return
 
-        self.hbox.remove(self.content)
+        self.reset_content(activity)
 
-        if row.antfile.exists:
-            self.content = ActivityDetails(row)
-            if not self.select_button.get_active():
-                self.delete_button.show()
-        else:
-            self.content = ActivityMissingDetails(row)
-            self.delete_button.hide()
-        # elif row.status == Activity.Status.DOWNLOADING:
-        #     self.content = ActivityDownloading()
-        #     self.delete_button.hide()
+    def activity_status_changed_cb(self, activity, status):
+        self.reset_content(activity)
+
+    def reset_content(self, activity):
+        if self.content:
+            self.content.destroy()
+            self.content = None
+
+        # on device but not computer
+        if activity.status is Activity.Status.NONE:
+            self.content = ActivityMissingDetails(activity)
+
+        # currently downloading
+        elif activity.status is Activity.Status.DOWNLOADING:
+            self.content = ActivityDownloadingDetails(activity)
+
+        # finished downloading
+        elif activity.status is Activity.Status.DOWNLOADED:
+            activity.parse()
+            self.content = Gtk.Spinner()
+            self.content.start()
+
+        # currently parsing
+        elif activity.status is Activity.Status.PARSING:
+            self.content = Gtk.Spinner()
+            self.content.start()
+
+        # finished parsing
+        elif activity.status is Activity.Status.PARSED:
+            self.content = ActivityDetails(activity)
+
+        self.delete_button.set_visible(
+            activity.status is Activity.Status.PARSED and \
+            not self.select_button.get_active())
 
         self.hbox.pack_start(self.content, True, True, 0)
         self.content.show_all()
 
-        title = row.antfile.date.strftime('%A %d %B at %H:%M')
+        title = activity.date.strftime('%A %d %B at %H:%M')
         self.right_toolbar.set_title(title)
+
+        # once the focused activity is changed we want to stop listening to
+        # its status-changed signal. in most cases this isn't a problem but if
+        # you select an activity, press download, and change activity, once
+        # the first activity is downloaded the content will change.
+        def content_destroy_cb(widget, activity):
+            try:
+                activity.disconnect_by_func(self.activity_status_changed_cb)
+            except TypeError:
+                pass
+        self.content.connect('destroy', content_destroy_cb, activity)
+
+        activity.connect('status-changed', self.activity_status_changed_cb)
 
 class ListPane(Gtk.Frame):
     def __init__(self):
@@ -237,7 +268,7 @@ class ActivityList(Gtk.ListBox):
 
         self.set_selection_mode(Gtk.SelectionMode.BROWSE)
         self.set_header_func(self.update_header, None)
-        self.set_sort_func(self.sort, None)
+        self.set_sort_func(Activity.sort_func, None)
 
         color = Gdk.RGBA()
         color.parse('#ebebed')
@@ -255,25 +286,99 @@ class ActivityList(Gtk.ListBox):
         else:
             row.set_header(None)
 
-    def sort(self, row1, row2, unused):
-        if row1.antfile.date > row2.antfile.date:
-            return -1
-        elif row1.antfile.date < row2.antfile.date:
-            return 1
-        else:
-            return 0
+class Activity(GObject.GObject):
 
-class ActivityRow(Gtk.ListBoxRow):
+    class Status:
+        NONE = 0 # only on the device
+        DOWNLOADING = 1
+        DOWNLOADED = 2
+        PARSING = 3
+        PARSED = 4
+
     def __init__(self, config, antfile):
-        Gtk.ListBoxRow.__init__(self)
+        GObject.GObject.__init__(self)
 
         self.config = config
         self.antfile = antfile
         self.fit = None
+        self.status = Activity.Status.NONE
 
-        self.strava_id = None
-        if config.has_option(antfile.filename, 'strava_id'):
-            self.strava_id = config.get(antfile.filename, 'strava_id')
+        if self.downloaded:
+            self.fit = fit.Fit(self.full_path)
+            self.fit.connect('status-changed', self.fit_status_changed_cb)
+            self.status = Activity.Status.DOWNLOADED
+
+    def fit_status_changed_cb(self, f, status):
+        mapping = {
+            fit.Fit.Status.PARSING: Activity.Status.PARSING,
+            fit.Fit.Status.PARSED: Activity.Status.PARSED,
+        }
+
+        for fstatus, astatus in mapping.items():
+            if status is fstatus:
+                self.change_status(astatus)
+
+    # signals: because GObject doesn't support multiple inheritance, every
+    # signal here will have to be copied into any subclass manually
+    @GObject.Signal(arg_types=(int,))
+    def status_changed(self, status):
+        pass
+
+    # properties
+    @property
+    def filename(self):
+        return self.antfile.filename
+
+    @property
+    def full_path(self):
+        return self.antfile.path
+
+    @property
+    def downloaded(self):
+        return os.path.exists(self.full_path)
+
+    @property
+    def strava_id(self):
+        if self.config.has_option(self.filename, 'strava_id'):
+            return int(self.config.get(self.filename, 'strava_id'))
+        return None
+
+    @strava_id.setter
+    def strava_id(self, new_id):
+        if not self.config.has_section(self.filename):
+            self.config.add_section(self.filename)
+        self.config.set(self.filename, 'strava_id', str(new_id))
+
+    @property
+    def date(self):
+        return self.antfile.date
+
+    # helper funcs
+    def change_status(self, status):
+        self.status = status
+        self.emit('status-changed', status)
+
+    @staticmethod
+    def sort_func(activity1, activity2, unused=None):
+        if activity1.date > activity2.date:
+            return -1
+        elif activity1.date < activity2.date:
+            return 1
+        else:
+            return 0
+
+    def parse(self):
+        # deliberately break if self.fit is None
+        self.fit.parse()
+
+class ActivityRow(Gtk.ListBoxRow, Activity):
+
+    # see comment about signals in Activity class definition
+    status_changed = Activity.status_changed
+
+    def __init__(self, config, antfile):
+        Gtk.ListBoxRow.__init__(self)
+        Activity.__init__(self, config, antfile)
 
         grid = Gtk.Grid(margin=6)
         grid.set_column_spacing(10)
@@ -282,8 +387,8 @@ class ActivityRow(Gtk.ListBoxRow):
         self.image = Gtk.Image(icon_name='preferences-system-time-symbolic',
             icon_size=Gtk.IconSize.DND)
 
-        self.date_str = antfile.date.strftime('%A %d %b %Y')
-        self.time_str = antfile.date.strftime('%H:%M')
+        self.date_str = self.date.strftime('%A %d %b %Y')
+        self.time_str = self.date.strftime('%H:%M')
         markup = '<b>{}</b>\n<small>{}</small>'.format(self.date_str, self.time_str)
 
         self.label = Gtk.Label()
@@ -311,32 +416,24 @@ class ActivityRow(Gtk.ListBoxRow):
         grid.attach(self.selector_button, 3, 0, 1, 1)
         # don't show selector button yet
 
-        if not self.antfile.exists:
+        if not self.downloaded:
             self.label.set_sensitive(False)
             self.image.destroy()
             self.image = Gtk.Image(icon_name='emblem-important-symbolic', icon_size=Gtk.IconSize.DND)
             grid.attach(self.image, 0, 0, 1, 1)
-        else:
-            self.load_fit()
-        # elif self.status == ActivityRow.Status.DOWNLOADING:
-        #     self.spinner.show()
-        #     self.spinner.start()
-        #     label.set_sensitive(False)
-        #     image.destroy()
-        #     image = Gtk.Image(icon_name='folder-download-symbolic', icon_size=Gtk.IconSize.DND)
-        #     grid.attach(image, 0, 0, 1, 1)
-
-    def load_fit(self):
-        self.fit = fit.Fit(self.antfile.path)
-
-        # connect to Fit::status-changed if we want to show details about the
-        # activity here
+        elif self.status == Activity.Status.DOWNLOADING:
+            self.spinner.show()
+            self.spinner.start()
+            self.label.set_sensitive(False)
+            self.image.destroy()
+            self.image = Gtk.Image(icon_name='folder-download-symbolic', icon_size=Gtk.IconSize.DND)
+            grid.attach(self.image, 0, 0, 1, 1)
 
 class ActivityMissingDetails(Gtk.Grid):
-    def __init__(self, row):
+    def __init__(self, activity):
         Gtk.Grid.__init__(self)
 
-        self.row = row
+        self.activity = activity
 
         self.set_row_spacing(12)
         self.set_column_spacing(16)
@@ -354,7 +451,8 @@ class ActivityMissingDetails(Gtk.Grid):
         label.set_valign(Gtk.Align.CENTER)
         label.set_margin_left(6)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">' + self.row.date_str + '</span>')
+        # TODO
+        label.set_markup('<span font="16">' + self.activity.date_str + '</span>')
         self.attach(label, 1, 0, 1, 1)
 
         label = Gtk.Label('')
@@ -362,7 +460,8 @@ class ActivityMissingDetails(Gtk.Grid):
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">' + self.row.time_str + '</span>')
+        # TODO
+        label.set_markup('<span font="16">' + self.activity.time_str + '</span>')
         self.attach(label, 2, 0, 1, 1)
 
         label = Gtk.Label('This activity is on your device but hasn\'t been downloaded to ' + \
@@ -410,8 +509,10 @@ class NoActivities(Gtk.Grid):
         self.attach(label, 0, 1, 2, 1)
 
 class ActivityDownloadingDetails(Gtk.Box):
-    def __init__(self):
+    def __init__(self, activity):
         Gtk.Box.__init__(self)
+
+        self.activity = activity
 
         self.set_orientation(Gtk.Orientation.VERTICAL)
 
@@ -433,7 +534,7 @@ class ActivityDownloadingDetails(Gtk.Box):
         label.set_valign(Gtk.Align.CENTER)
         label.set_margin_left(6)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">' + self.row.date_str + '</span>')
+        label.set_markup('<span font="16">' + self.activity.date_str + '</span>')
         grid.attach(label, 1, 0, 1, 1)
 
         label = Gtk.Label('')
@@ -441,7 +542,7 @@ class ActivityDownloadingDetails(Gtk.Box):
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">' + self.row.time_str + '</span>')
+        label.set_markup('<span font="16">' + self.activity.time_str + '</span>')
         grid.attach(label, 2, 0, 1, 1)
 
         label = Gtk.Label('This activity is on your device but needs to be downloaded before its ' + \
@@ -485,10 +586,10 @@ class ActivityDownloadingDetails(Gtk.Box):
         tool_item.add(button)
 
 class ActivityDetails(Gtk.ScrolledWindow):
-    def __init__(self, row):
+    def __init__(self, activity):
         Gtk.ScrolledWindow.__init__(self)
 
-        self.row = row
+        self.activity = activity
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(box)
@@ -565,7 +666,7 @@ class ActivityDetails(Gtk.ScrolledWindow):
         tool_item = Gtk.ToolItem()
         bar.insert(tool_item, -1)
         button = Gtk.Button('Upload')
-        if self.row.strava_id:
+        if self.activity.strava_id:
             button.set_label('View activity on Strava')
         tool_item.add(button)
         button.connect('clicked', self.upload_view_clicked)
@@ -574,16 +675,17 @@ class ActivityDetails(Gtk.ScrolledWindow):
         self.fill_details()
 
     def upload_view_clicked(self, data=None):
-        if self.row.strava_id:
-            url = strava.ACTIVITY_URL.format(self.row.strava_id)
+        if self.activity.strava_id:
+            url = strava.ACTIVITY_URL.format(self.activity.strava_id)
             Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
 
     def fill_details(self):
 
-        # use 'f' here to not clobber the module name
-        def status_changed_cb(f, status=fit.Fit.Status.PARSED):
-            if status is not fit.Fit.Status.PARSED:
+        def status_changed_cb(activity, status=Activity.Status.PARSED):
+            if status is not Activity.Status.PARSED:
                 return
+
+            f = activity.fit
 
             layer = Champlain.PathLayer()
 
@@ -618,8 +720,8 @@ class ActivityDetails(Gtk.ScrolledWindow):
             self.moving_time_label.set_markup('{0}:{1:02d}:{2:02d}\n' \
                 '<span color="gray">Moving Time</span>'.format(hours, mins, secs))
 
-        if self.row.fit.status is fit.Fit.Status.PARSED:
-            status_changed_cb(self.row.fit)
+        if self.activity.status is Activity.Status.PARSED:
+            status_changed_cb(self.activity)
         else:
-            self.row.fit.connect('status-changed', status_changed_cb)
-            self.row.fit.parse()
+            self.activity.connect('status-changed', status_changed_cb)
+            self.activity.parse()
