@@ -121,7 +121,7 @@ class Window(Gtk.ApplicationWindow):
             self.num_selected -= 1
 
         if self.num_selected > 0:
-            self.left_toolbar.set_title('%s selected' % self.num_selected)
+            self.left_toolbar.set_title('{} selected'.format(self.num_selected))
             self.pane.delete_button.set_sensitive(True)
         else:
             self.left_toolbar.set_title('Select')
@@ -284,7 +284,7 @@ class ActivityRow(Gtk.ListBoxRow):
 
         self.date_str = antfile.date.strftime('%A %d %b %Y')
         self.time_str = antfile.date.strftime('%H:%M')
-        markup = '<b>%s</b>\n<small>%s</small>' % (self.date_str, self.time_str)
+        markup = '<b>{}</b>\n<small>{}</small>'.format(self.date_str, self.time_str)
 
         self.label = Gtk.Label()
         self.label.set_markup(markup)
@@ -603,20 +603,20 @@ class ActivityDetails(Gtk.ScrolledWindow):
             view.set_property('zoom-level', 13)
 
             # now labels
-            self.distance_label.set_markup('<span font="16">%.1f km</span>\n' \
-                '<span color="gray">Distance</span>' % (f.get_distance() / 1000))
+            self.distance_label.set_markup('<span font="16">{0:.1f} km</span>\n' \
+                '<span color="gray">Distance</span>'.format(f.get_distance() / 1000))
 
             hours, mins, secs = f.get_elapsed_time()
-            self.elapsed_time_label.set_markup('<span font="16">%d:%02d:%02d</span>\n' \
-                '<span color="gray">Elapsed Time</span>' % (hours, mins, secs))
+            self.elapsed_time_label.set_markup('<span font="16">{0}:{1:02d}:{2:02d}</span>\n' \
+                '<span color="gray">Elapsed Time</span>'.format(hours, mins, secs))
 
             elevation = f.get_elevation()
-            self.elevation_label.set_markup('%dm\n' \
-                '<span color="gray">Elevation</span>' % elevation)
+            self.elevation_label.set_markup('{}m\n' \
+                '<span color="gray">Elevation</span>'.format(elevation))
 
             hours, mins, secs = f.get_moving_time()
-            self.moving_time_label.set_markup('%d:%02d:%02d\n' \
-                '<span color="gray">Moving Time</span>' % (hours, mins, secs))
+            self.moving_time_label.set_markup('{0}:{1:02d}:{2:02d}\n' \
+                '<span color="gray">Moving Time</span>'.format(hours, mins, secs))
 
         if self.row.fit.status is fit.Fit.Status.PARSED:
             status_changed_cb(self.row.fit)

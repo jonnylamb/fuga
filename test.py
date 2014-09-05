@@ -19,7 +19,7 @@ statuses = {
     }
 
 def status_changed_cb(g, status):
-    print 'status changed: %s' % statuses[status]
+    print 'status changed: {}'.format(statuses[status])
 g.connect('status-changed', status_changed_cb)
 
 def files_cb(g, p):
