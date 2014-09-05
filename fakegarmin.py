@@ -66,12 +66,13 @@ class FakeAntFile(object):
 
 class FakeGarmin(GObject.GObject):
 
-    __gsignals__ = {
-        'status-changed': (GObject.SIGNAL_RUN_FIRST, None,
-            (int,)),
-        'files': (GObject.SIGNAL_RUN_FIRST, None,
-            (str,)) # TODO
-    }
+    @GObject.Signal(arg_types=(int,))
+    def status_changed(self, status):
+        pass
+
+    @GObject.Signal(arg_types=(str,))
+    def files(self, files):
+        pass
 
     def __init__(self, authentication_fail=False):
         GObject.GObject.__init__(self)

@@ -101,14 +101,14 @@ class Window(Gtk.ApplicationWindow):
 
         self.select_button.set_sensitive(True)
 
-    def parse_all(self, data=None):
+    def parse_all(self, unused=None):
         def idle():
             for activity in self.activities:
                 if not activity.fit:
                     continue
 
-                if not activity.fit.parsed:
-                    activity.fit.connect('parsed', self.parse_all)
+                if activity.fit.status is not fit.Fit.Status.PARSED:
+                    activity.fit.connect('status-changed', self.parse_all)
                     activity.fit.parse()
                     return
 
@@ -329,7 +329,8 @@ class ActivityRow(Gtk.ListBoxRow):
     def load_fit(self):
         self.fit = fit.Fit(self.antfile.path)
 
-        # connect to ::parsed if we want to show details about the activity here
+        # connect to Fit::status-changed if we want to show details about the
+        # activity here
 
 class ActivityMissingDetails(Gtk.Grid):
     def __init__(self, row):
@@ -579,10 +580,14 @@ class ActivityDetails(Gtk.ScrolledWindow):
 
     def fill_details(self):
 
-        def parsed_cb(fit):
+        # use 'f' here to not clobber the module name
+        def status_changed_cb(f, status=fit.Fit.Status.PARSED):
+            if status is not fit.Fit.Status.PARSED:
+                return
+
             layer = Champlain.PathLayer()
 
-            for message in fit.records():
+            for message in f.records():
                 vals = message.get_values()
                 try:
                     coord = Champlain.Coordinate.new_full(
@@ -599,22 +604,22 @@ class ActivityDetails(Gtk.ScrolledWindow):
 
             # now labels
             self.distance_label.set_markup('<span font="16">%.1f km</span>\n' \
-                '<span color="gray">Distance</span>' % (self.row.fit.get_distance() / 1000))
+                '<span color="gray">Distance</span>' % (f.get_distance() / 1000))
 
-            hours, mins, secs = self.row.fit.get_elapsed_time()
+            hours, mins, secs = f.get_elapsed_time()
             self.elapsed_time_label.set_markup('<span font="16">%d:%02d:%02d</span>\n' \
                 '<span color="gray">Elapsed Time</span>' % (hours, mins, secs))
 
-            elevation = self.row.fit.get_elevation()
+            elevation = f.get_elevation()
             self.elevation_label.set_markup('%dm\n' \
                 '<span color="gray">Elevation</span>' % elevation)
 
-            hours, mins, secs = self.row.fit.get_moving_time()
+            hours, mins, secs = f.get_moving_time()
             self.moving_time_label.set_markup('%d:%02d:%02d\n' \
                 '<span color="gray">Moving Time</span>' % (hours, mins, secs))
 
-        if self.row.fit.parsed:
-            parsed_cb(self.row.fit)
+        if self.row.fit.status is fit.Fit.Status.PARSED:
+            status_changed_cb(self.row.fit)
         else:
-            self.row.fit.connect('parsed', parsed_cb)
+            self.row.fit.connect('status-changed', status_changed_cb)
             self.row.fit.parse()

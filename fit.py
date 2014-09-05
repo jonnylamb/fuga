@@ -13,10 +13,14 @@ def run_in_thread(fn):
 
 class Fit(GObject.GObject):
 
-    __gsignals__ = {
-        'parsed': (GObject.SIGNAL_RUN_FIRST, None,
-            ())
-    }
+    class Status:
+        NONE = 0
+        PARSING = 1
+        PARSED = 2
+
+    @GObject.Signal(arg_types=(int,))
+    def status_changed(self, status):
+        pass
 
     def __init__(self, filename):
         GObject.GObject.__init__(self)
@@ -27,14 +31,14 @@ class Fit(GObject.GObject):
             data_processor=fitparse.StandardUnitsDataProcessor())
         self.summary = None
 
-        self.parsed = False
-        self.parsing = False
+        self.status = Fit.Status.NONE
 
     @run_in_thread
     def parse(self):
-        if self.parsing:
+        if self.status is not Fit.Status.NONE:
             return
-        self.parsing = True
+        self.status = Fit.Status.PARSING
+        self.emit('status-changed', self.status)
 
         self.fit.parse()
 
@@ -44,9 +48,8 @@ class Fit(GObject.GObject):
             self.summary = msg
 
         def emit_parsed():
-            self.parsed = True
-            self.parsing = False
-            self.emit('parsed')
+            self.status = Fit.Status.PARSED
+            self.emit('status-changed', self.status)
         GObject.idle_add(emit_parsed)
 
     def records(self):

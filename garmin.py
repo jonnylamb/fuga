@@ -151,12 +151,13 @@ class Garmin(ant.fs.manager.Application,
         CONNECTED = 4
         DISCONNECTED = 5
 
-    __gsignals__ = {
-        'status-changed': (GObject.SIGNAL_RUN_FIRST, None,
-            (int,)),
-        'files': (GObject.SIGNAL_RUN_FIRST, None,
-            (str,)) # TODO
-    }
+    @GObject.Signal(arg_types=(int,))
+    def status_changed(self, status):
+        pass
+
+    @GObject.Signal(arg_types=(str,))
+    def files(self, files):
+        pass
 
     def __init__(self):
         ant.fs.manager.Application.__init__(self)
