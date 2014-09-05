@@ -82,7 +82,7 @@ class Window(Gtk.ApplicationWindow):
         self.hbox.pack_start(self.content, True, True, 0)
 
     def add_activity(self, antfile):
-        row = ActivityRow(self.config, antfile)
+        row = ActivityRow(self, self.config, antfile)
         row.selector_button.connect('toggled', self.activity_toggled_cb)
         self.pane.activity_list.prepend(row)
         self.activities.append(row)
@@ -302,6 +302,7 @@ class Activity(GObject.GObject):
         self.antfile = antfile
         self.fit = None
         self.status = Activity.Status.NONE
+        self.uploader = None
 
         if self.downloaded:
             self.fit = fit.Fit(self.full_path)
@@ -322,6 +323,13 @@ class Activity(GObject.GObject):
     # signal here will have to be copied into any subclass manually
     @GObject.Signal(arg_types=(int,))
     def status_changed(self, status):
+        pass
+
+    @GObject.Signal(arg_types=(int,))
+    def strava_id_updated(self, status):
+        # have a different signal for this and not just another Activity
+        # status because we don't want to redraw the entire map widget just to
+        # change the text on one button.
         pass
 
     # properties
@@ -348,6 +356,8 @@ class Activity(GObject.GObject):
         if not self.config.has_section(self.filename):
             self.config.add_section(self.filename)
         self.config.set(self.filename, 'strava_id', str(new_id))
+        self.config.save()
+        self.emit('strava-id-updated', new_id)
 
     @property
     def date(self):
@@ -371,14 +381,37 @@ class Activity(GObject.GObject):
         # deliberately break if self.fit is None
         self.fit.parse()
 
+    def upload(self):
+        if self.uploader:
+            return self.uploader
+
+        self.uploader = strava.Uploader(self)
+
+        def status_changed_cb(uploader, status):
+            if status in (strava.Uploader.Status.DONE,
+                    strava.Uploader.Status.DUPLICATE):
+                self.strava_id = uploader.activity_id
+
+            if status in (strava.Uploader.Status.DONE,
+                    strava.Uploader.Status.ERROR,
+                    strava.Uploader.Status.DUPLICATE):
+                self.uploader = None
+
+        self.uploader.connect('status-changed', status_changed_cb)
+
+        return self.uploader
+
 class ActivityRow(Gtk.ListBoxRow, Activity):
 
     # see comment about signals in Activity class definition
     status_changed = Activity.status_changed
+    strava_id_updated = Activity.strava_id_updated
 
-    def __init__(self, config, antfile):
+    def __init__(self, window, config, antfile):
         Gtk.ListBoxRow.__init__(self)
         Activity.__init__(self, config, antfile)
+
+        self.window = window
 
         grid = Gtk.Grid(margin=6)
         grid.set_column_spacing(10)
@@ -428,6 +461,58 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
             self.image.destroy()
             self.image = Gtk.Image(icon_name='folder-download-symbolic', icon_size=Gtk.IconSize.DND)
             grid.attach(self.image, 0, 0, 1, 1)
+
+    def upload_to_strava(self):
+        dialog = UploadDialog(self)
+        dialog.set_transient_for(self.window)
+        dialog.show_all()
+
+class UploadDialog(Gtk.Dialog):
+    def __init__(self, activity):
+        Gtk.Dialog.__init__(self)
+
+        self.activity = activity
+
+        self.set_title('Upload activity')
+        self.set_modal(True)
+        self.set_size_request(500, -1)
+
+        content = self.get_content_area()
+
+        self.label = Gtk.Label()
+        self.label.set_markup('<i>Uploading...</i>')
+        self.label.set_halign(Gtk.Align.START)
+        content.pack_start(self.label, True, True, 0)
+
+        self.progress = Gtk.ProgressBar()
+        content.pack_start(self.progress, True, True, 5)
+
+        def pulse():
+            self.progress.pulse()
+            return True
+        self.pulse_id = GLib.timeout_add(100, pulse)
+
+        self.uploader = activity.upload()
+        self.uploader.connect('status-changed', self.status_changed_cb)
+        self.uploader.start()
+
+    def status_changed_cb(self, uploader, status):
+        if status is strava.Uploader.Status.WAITING:
+            self.label.set_markup('<i>Waiting for Strava to process activity...</i>')
+        elif status is strava.Uploader.Status.DONE:
+            self.close('Uploaded successfully.')
+        elif status is strava.Uploader.Status.ERROR:
+            self.close('Failed to upload: {}'.format(uploader.error))
+        elif status is strava.Uploader.Status.DUPLICATE:
+            self.close('Failed to upload: activity already uploaded.')
+
+    def close(self, message):
+        GLib.source_remove(self.pulse_id)
+
+        self.progress.set_fraction(1.0)
+        self.label.set_markup('<i>{}</i>'.format(message))
+
+        GLib.timeout_add_seconds(2, self.destroy)
 
 class ActivityMissingDetails(Gtk.Grid):
     def __init__(self, activity):
@@ -665,19 +750,26 @@ class ActivityDetails(Gtk.ScrolledWindow):
 
         tool_item = Gtk.ToolItem()
         bar.insert(tool_item, -1)
-        button = Gtk.Button('Upload')
+        self.upload_button = Gtk.Button('Upload')
         if self.activity.strava_id:
-            button.set_label('View activity on Strava')
-        tool_item.add(button)
-        button.connect('clicked', self.upload_view_clicked)
+            self.upload_button.set_label('View activity on Strava')
+        tool_item.add(self.upload_button)
+        self.upload_button.connect('clicked', self.upload_view_clicked_cb)
+        self.activity.connect('strava-id-updated', self.strava_id_updated_cb)
 
         # once parsed fill in the blanks
         self.fill_details()
 
-    def upload_view_clicked(self, data=None):
+    def upload_view_clicked_cb(self, data=None):
         if self.activity.strava_id:
             url = strava.ACTIVITY_URL.format(self.activity.strava_id)
             Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
+        else:
+            self.activity.upload_to_strava()
+
+    def strava_id_updated_cb(self, activity, new_id):
+        if self.activity.strava_id:
+            self.upload_button.set_label('View activity on Strava')
 
     def fill_details(self):
 
