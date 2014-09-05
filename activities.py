@@ -1,10 +1,11 @@
 import os
 import random
 from threading import Thread
+import json
 
 from gi.repository import GtkClutter, Clutter
 GtkClutter.init([])
-from gi.repository import Gtk, GLib, GObject, Gio, Pango, Gdk, GtkChamplain, Champlain
+from gi.repository import Gtk, GLib, GObject, Gio, Pango, Gdk, GtkChamplain, Champlain, WebKit
 
 import fitparse
 
@@ -514,6 +515,68 @@ class UploadDialog(Gtk.Dialog):
 
         GLib.timeout_add_seconds(2, self.destroy)
 
+class StravaAuthDialog(Gtk.Dialog):
+    def __init__(self, config):
+        Gtk.Dialog.__init__(self)
+
+        self.config = config
+
+        headerbar = Gtk.HeaderBar()
+        headerbar.set_title('Authorize Strava')
+        headerbar.get_style_context().add_class(Gtk.STYLE_CLASS_TITLEBAR)
+        self.set_titlebar(headerbar)
+
+        close_button = Gtk.Button(label='Cancel')
+        close_button.connect('clicked', self.close_clicked_cb)
+        headerbar.pack_end(close_button)
+
+        self.set_modal(True)
+        self.set_size_request(600, 600)
+
+        content = self.get_content_area()
+
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.NEVER,
+            Gtk.PolicyType.AUTOMATIC)
+        content.pack_start(scrolled, True, True, 0)
+
+        view = WebKit.WebView()
+        view.load_uri(strava.AUTH_URL)
+        view.connect('notify::load-status', self.load_status_cb)
+
+        scrolled.add(view)
+
+    def close_clicked_cb(self, button):
+        self.emit('response', Gtk.ResponseType.CANCEL)
+
+    def load_status_cb(self, view, pspec):
+        status = view.get_load_status()
+
+        if status is WebKit.LoadStatus.FINISHED:
+            uri = view.get_uri()
+
+            if not uri.startswith(strava.CALLBACK_URL):
+                return
+
+            frame = view.get_focused_frame()
+            source = frame.get_data_source()
+            raw = source.get_data().str
+
+            if raw.startswith('An error occurred'):
+                self.emit('response', Gtk.ResponseType.REJECT)
+            else:
+                data = json.loads(raw)
+
+                token = data.get('access_token')
+
+                if token:
+                    if not self.config.has_section('strava'):
+                        self.config.add_section('strava')
+                    self.config.set('strava', 'access_token', token)
+                    self.config.save()
+
+                    self.emit('response', Gtk.ResponseType.ACCEPT)
+
 class ActivityMissingDetails(Gtk.Grid):
     def __init__(self, activity):
         Gtk.Grid.__init__(self)
@@ -750,7 +813,7 @@ class ActivityDetails(Gtk.ScrolledWindow):
 
         tool_item = Gtk.ToolItem()
         bar.insert(tool_item, -1)
-        self.upload_button = Gtk.Button('Upload')
+        self.upload_button = Gtk.Button('Upload to Strava')
         if self.activity.strava_id:
             self.upload_button.set_label('View activity on Strava')
         tool_item.add(self.upload_button)
@@ -765,11 +828,30 @@ class ActivityDetails(Gtk.ScrolledWindow):
             url = strava.ACTIVITY_URL.format(self.activity.strava_id)
             Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
         else:
-            self.activity.upload_to_strava()
+            if self.activity.config.has_option('strava', 'access_token'):
+                self.activity.upload_to_strava()
+            else:
+                dialog = StravaAuthDialog(self.activity.config)
+                dialog.connect('response', self.auth_dialog_response_cb)
+                dialog.set_transient_for(self.activity.window)
+                dialog.show_all()
 
     def strava_id_updated_cb(self, activity, new_id):
         if self.activity.strava_id:
             self.upload_button.set_label('View activity on Strava')
+
+    def auth_dialog_response_cb(self, dialog, response_id):
+        if response_id == Gtk.ResponseType.ACCEPT:
+            self.activity.upload_to_strava()
+
+        dialog.destroy()
+
+        if response_id == Gtk.ResponseType.REJECT:
+            message = Gtk.MessageDialog(self.activity.window, Gtk.DialogFlags.MODAL,
+                Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE,
+                'Failed to authenticate with Strava.')
+            message.connect('response', lambda *x: message.destroy())
+            message.show_all()
 
     def fill_details(self):
 

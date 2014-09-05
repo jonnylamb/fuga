@@ -8,6 +8,8 @@ import utils
 ACTIVITY_URL = 'http://www.strava.com/activities/{}'
 UPLOAD_URL = 'https://www.strava.com/api/v3/uploads'
 UPLOAD_URL_WITH_ID = 'https://www.strava.com/api/v3/uploads/{}'
+AUTH_URL = 'https://www.strava.com/oauth/authorize?client_id=362&response_type=code&redirect_uri=http://correre.jonnylamb.com&approval_prompt=force&scope=write'
+CALLBACK_URL = 'http://correre.jonnylamb.com/'
 
 class Uploader(GObject.GObject):
 
