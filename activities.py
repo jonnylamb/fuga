@@ -95,6 +95,8 @@ class Window(Gtk.ApplicationWindow):
                 return 0
         self.activities.sort(sort)
 
+        # not at all necessary to enable unless the listview row starts
+        # showing actual details about the activity
         #self.parse_all()
 
         self.select_button.set_sensitive(True)
@@ -177,7 +179,8 @@ class Window(Gtk.ApplicationWindow):
         self.hbox.pack_start(self.content, True, True, 0)
         self.content.show_all()
 
-        self.right_toolbar.set_title(row.date_str)
+        title = row.antfile.date.strftime('%A %d %B at %H:%M')
+        self.right_toolbar.set_title(title)
 
 class ListPane(Gtk.Frame):
     def __init__(self):
@@ -276,18 +279,18 @@ class ActivityRow(Gtk.ListBoxRow):
         grid.set_column_spacing(10)
         self.add(grid)
 
-        # TODO
-        image = Gtk.Image(icon_name='preferences-system-time-symbolic', icon_size=Gtk.IconSize.DND)
+        self.image = Gtk.Image(icon_name='preferences-system-time-symbolic',
+            icon_size=Gtk.IconSize.DND)
 
-        self.date_str = antfile.date.strftime('%Y-%m-%d')
-        self.time_str = antfile.date.strftime('%H:%M:%S')
+        self.date_str = antfile.date.strftime('%A %d %b %Y')
+        self.time_str = antfile.date.strftime('%H:%M')
         markup = '<b>%s</b>\n<small>%s</small>' % (self.date_str, self.time_str)
 
-        label = Gtk.Label()
-        label.set_markup(markup)
-        label.set_ellipsize(Pango.EllipsizeMode.END)
-        label.set_valign(Gtk.Align.CENTER)
-        label.set_halign(Gtk.Align.START)
+        self.label = Gtk.Label()
+        self.label.set_markup(markup)
+        self.label.set_ellipsize(Pango.EllipsizeMode.END)
+        self.label.set_valign(Gtk.Align.CENTER)
+        self.label.set_halign(Gtk.Align.START)
 
         self.spinner = Gtk.Spinner()
         self.spinner.set_valign(Gtk.Align.CENTER)
@@ -301,18 +304,18 @@ class ActivityRow(Gtk.ListBoxRow):
         self.selector_button.set_hexpand(True)
         self.selector_button.set_no_show_all(True)
 
-        grid.attach(image, 0, 0, 1, 1)
-        grid.attach(label, 1, 0, 1, 1)
+        grid.attach(self.image, 0, 0, 1, 1)
+        grid.attach(self.label, 1, 0, 1, 1)
         grid.attach(self.spinner, 2, 0, 1, 1)
         # don't show spinner yet
         grid.attach(self.selector_button, 3, 0, 1, 1)
         # don't show selector button yet
 
         if not self.antfile.exists:
-            label.set_sensitive(False)
-            image.destroy()
-            image = Gtk.Image(icon_name='emblem-important-symbolic', icon_size=Gtk.IconSize.DND)
-            grid.attach(image, 0, 0, 1, 1)
+            self.label.set_sensitive(False)
+            self.image.destroy()
+            self.image = Gtk.Image(icon_name='emblem-important-symbolic', icon_size=Gtk.IconSize.DND)
+            grid.attach(self.image, 0, 0, 1, 1)
         else:
             self.load_fit()
         # elif self.status == ActivityRow.Status.DOWNLOADING:
@@ -325,6 +328,8 @@ class ActivityRow(Gtk.ListBoxRow):
 
     def load_fit(self):
         self.fit = fit.Fit(self.antfile.path)
+
+        # connect to ::parsed if we want to show details about the activity here
 
 class ActivityMissingDetails(Gtk.Grid):
     def __init__(self, row):
