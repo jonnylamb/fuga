@@ -35,7 +35,7 @@ class Fit(GObject.GObject):
 
     @run_in_thread
     def parse(self):
-        if self.status is not Fit.Status.NONE:
+        if self.status != Fit.Status.NONE:
             return
         self.status = Fit.Status.PARSING
         self.emit('status-changed', self.status)
@@ -44,7 +44,7 @@ class Fit(GObject.GObject):
 
         # is this always right? no idea.
         msg = self.fit.messages[-2]
-        if msg.type is 'data' and msg.name is 'session':
+        if msg.type == 'data' and msg.name == 'session':
             self.summary = msg
 
         def emit_parsed():

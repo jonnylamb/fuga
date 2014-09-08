@@ -40,7 +40,7 @@ class Uploader(GObject.GObject):
         self.activity_id = None
 
     def change_status(self, status):
-        if status is self.status:
+        if status == self.status:
             return
         self.status = status
         self.emit('status-changed', status)

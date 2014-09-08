@@ -102,7 +102,7 @@ class Window(Gtk.ApplicationWindow):
                 if not activity.downloaded:
                     continue
 
-                if activity.status is Activity.Status.DOWNLOADED:
+                if activity.status == Activity.Status.DOWNLOADED:
                     activity.connect('status-changed', self.parse_all)
                     activity.parse()
                     return
@@ -150,7 +150,7 @@ class Window(Gtk.ApplicationWindow):
 
             activity = self.pane.activity_list.get_selected_row()
             self.delete_button.set_visible(
-                activity.status is Activity.Status.PARSED)
+                activity.status == Activity.Status.PARSED)
 
             self.pane.revealer.set_reveal_child(False)
 
@@ -169,30 +169,30 @@ class Window(Gtk.ApplicationWindow):
             self.content = None
 
         # on device but not computer
-        if activity.status is Activity.Status.NONE:
+        if activity.status == Activity.Status.NONE:
             self.content = ActivityMissingDetails(activity)
 
         # currently downloading
-        elif activity.status is Activity.Status.DOWNLOADING:
+        elif activity.status == Activity.Status.DOWNLOADING:
             self.content = ActivityDownloadingDetails(activity)
 
         # finished downloading
-        elif activity.status is Activity.Status.DOWNLOADED:
+        elif activity.status == Activity.Status.DOWNLOADED:
             activity.parse()
             self.content = Gtk.Spinner()
             self.content.start()
 
         # currently parsing
-        elif activity.status is Activity.Status.PARSING:
+        elif activity.status == Activity.Status.PARSING:
             self.content = Gtk.Spinner()
             self.content.start()
 
         # finished parsing
-        elif activity.status is Activity.Status.PARSED:
+        elif activity.status == Activity.Status.PARSED:
             self.content = ActivityDetails(activity)
 
         self.delete_button.set_visible(
-            activity.status is Activity.Status.PARSED and \
+            activity.status == Activity.Status.PARSED and \
             not self.select_button.get_active())
 
         self.hbox.pack_start(self.content, True, True, 0)
@@ -282,7 +282,7 @@ class ActivityList(Gtk.ListBox):
     def update_header(self, row, before_row, unused):
         current = row.get_header()
 
-        if before_row and (not current or current is not Gtk.Separator):
+        if before_row and (not current or not isinstance(current, Gtk.Separator)):
             row.set_header(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
         else:
             row.set_header(None)
@@ -317,7 +317,7 @@ class Activity(GObject.GObject):
         }
 
         for fstatus, astatus in mapping.items():
-            if status is fstatus:
+            if status == fstatus:
                 self.change_status(astatus)
 
     # signals: because GObject doesn't support multiple inheritance, every
@@ -498,13 +498,13 @@ class UploadDialog(Gtk.Dialog):
         self.uploader.start()
 
     def status_changed_cb(self, uploader, status):
-        if status is strava.Uploader.Status.WAITING:
+        if status == strava.Uploader.Status.WAITING:
             self.label.set_markup('<i>Waiting for Strava to process activity...</i>')
-        elif status is strava.Uploader.Status.DONE:
+        elif status == strava.Uploader.Status.DONE:
             self.close('Uploaded successfully.')
-        elif status is strava.Uploader.Status.ERROR:
+        elif status == strava.Uploader.Status.ERROR:
             self.close('Failed to upload: {}'.format(uploader.error))
-        elif status is strava.Uploader.Status.DUPLICATE:
+        elif status == strava.Uploader.Status.DUPLICATE:
             self.close('Failed to upload: activity already uploaded.')
 
     def close(self, message):
@@ -552,7 +552,7 @@ class StravaAuthDialog(Gtk.Dialog):
     def load_status_cb(self, view, pspec):
         status = view.get_load_status()
 
-        if status is WebKit.LoadStatus.FINISHED:
+        if status == WebKit.LoadStatus.FINISHED:
             uri = view.get_uri()
 
             if not uri.startswith(strava.CALLBACK_URL):
@@ -856,7 +856,7 @@ class ActivityDetails(Gtk.ScrolledWindow):
     def fill_details(self):
 
         def status_changed_cb(activity, status=Activity.Status.PARSED):
-            if status is not Activity.Status.PARSED:
+            if status != Activity.Status.PARSED:
                 return
 
             f = activity.fit
@@ -894,7 +894,7 @@ class ActivityDetails(Gtk.ScrolledWindow):
             self.moving_time_label.set_markup('{0}:{1:02d}:{2:02d}\n' \
                 '<span color="gray">Moving Time</span>'.format(hours, mins, secs))
 
-        if self.activity.status is Activity.Status.PARSED:
+        if self.activity.status == Activity.Status.PARSED:
             status_changed_cb(self.activity)
         else:
             self.activity.connect('status-changed', status_changed_cb)
