@@ -2,6 +2,7 @@ import os
 import random
 from threading import Thread
 import json
+from datetime import datetime
 
 from gi.repository import GtkClutter, Clutter
 GtkClutter.init([])
@@ -320,6 +321,20 @@ class Activity(GObject.GObject):
             if status == fstatus:
                 self.change_status(astatus)
 
+        # cache a bit of information
+        if status == fit.Fit.Status.PARSED:
+            if self.fit.get_sport():
+                # string
+                self.set_config('sport', self.fit.get_sport())
+                # float
+                self.set_config('distance', self.fit.get_distance())
+                # float
+                self.set_config('elapsed_time',
+                    self.fit.get_elapsed_time(triplet=False))
+                # string
+                self.set_config('start_time',
+                    self.fit.get_start_time())
+
     # signals: because GObject doesn't support multiple inheritance, every
     # signal here will have to be copied into any subclass manually
     @GObject.Signal(arg_types=(int,))
@@ -370,7 +385,13 @@ class Activity(GObject.GObject):
 
     @property
     def date(self):
-        return self.antfile.save_date
+        if self.status == Activity.Status.PARSED:
+            return self.fit.get_start_time()
+        else:
+            start = self.get_config('start_time')
+            if start:
+                return datetime.strptime(start, '%Y-%m-%d %H:%M:%S')
+            return self.antfile.save_date
 
     # helper funcs
     def change_status(self, status):
