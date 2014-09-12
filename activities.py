@@ -452,12 +452,7 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         self.image = Gtk.Image(icon_name='preferences-system-time-symbolic',
             icon_size=Gtk.IconSize.DND)
 
-        self.date_str = self.date.strftime('%A %d %b %Y')
-        self.time_str = self.date.strftime('%H:%M')
-        markup = '<b>{}</b>\n<small>{}</small>'.format(self.date_str, self.time_str)
-
         self.label = Gtk.Label()
-        self.label.set_markup(markup)
         self.label.set_ellipsize(Pango.EllipsizeMode.END)
         self.label.set_valign(Gtk.Align.CENTER)
         self.label.set_halign(Gtk.Align.START)
@@ -494,10 +489,20 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
             self.image = Gtk.Image(icon_name='folder-download-symbolic', icon_size=Gtk.IconSize.DND)
             grid.attach(self.image, 0, 0, 1, 1)
 
+        self.connect('status-changed', self.status_changed_cb)
+        self.status_changed_cb(self, self.status)
+
     def upload_to_strava(self):
         dialog = UploadDialog(self)
         dialog.set_transient_for(self.window)
         dialog.show_all()
+
+    def status_changed_cb(self, activity, status):
+        # TODO: change format
+        self.date_str = self.date.strftime('%A %d %b %Y')
+        self.time_str = self.date.strftime('%H:%M')
+        markup = '<b>{}</b>\n<small>{}</small>'.format(self.date_str, self.time_str)
+        self.label.set_markup(markup)
 
 class UploadDialog(Gtk.Dialog):
     def __init__(self, activity):
