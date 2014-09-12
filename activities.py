@@ -333,6 +333,18 @@ class Activity(GObject.GObject):
         # change the text on one button.
         pass
 
+    # config options
+    def get_config(self, key, default=None):
+        if self.config.has_option(self.filename, key):
+            return self.config.get(self.filename, key)
+        return default
+
+    def set_config(self, key, value):
+        if not self.config.has_section(self.filename):
+            self.config.add_section(self.filename)
+        self.config.set(self.filename, key, value)
+        self.config.save()
+
     # properties
     @property
     def filename(self):
@@ -348,16 +360,12 @@ class Activity(GObject.GObject):
 
     @property
     def strava_id(self):
-        if self.config.has_option(self.filename, 'strava_id'):
-            return int(self.config.get(self.filename, 'strava_id'))
-        return None
+        ret = self.get_config('strava_id')
+        return ret if ret is None else int(ret)
 
     @strava_id.setter
     def strava_id(self, new_id):
-        if not self.config.has_section(self.filename):
-            self.config.add_section(self.filename)
-        self.config.set(self.filename, 'strava_id', str(new_id))
-        self.config.save()
+        self.set_config('strava_id', str(new_id))
         self.emit('strava-id-updated', new_id)
 
     @property
