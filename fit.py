@@ -88,3 +88,6 @@ class Fit(GObject.GObject):
 
     def get_moving_time(self):
         return self.time_triplet(self.get('total_timer_time'))
+
+    def get_start_time(self):
+        return self.get('start_time')
