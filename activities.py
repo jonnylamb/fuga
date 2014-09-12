@@ -370,7 +370,7 @@ class Activity(GObject.GObject):
 
     @property
     def date(self):
-        return self.antfile.date
+        return self.antfile.save_date
 
     # helper funcs
     def change_status(self, status):

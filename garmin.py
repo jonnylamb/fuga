@@ -131,7 +131,7 @@ class AntFile(object):
         self.path = os.path.join(device.path, FILETYPES[antfile.get_fit_sub_type()], self.filename)
 
     @property
-    def date(self):
+    def save_date(self):
         return self.antfile.get_date()
 
 class Garmin(ant.fs.manager.Application,

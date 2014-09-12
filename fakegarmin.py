@@ -14,7 +14,7 @@ class FakeAntFile(object):
         self.filename = name
 
         date, time, subtype, number = name.split('_')
-        self.date = datetime.strptime(date + '_' + time, '%Y-%m-%d_%H-%M-%S')
+        self.save_date = datetime.strptime(date + '_' + time, '%Y-%m-%d_%H-%M-%S')
 
         self.path = os.path.join(base_path, FILETYPES[int(subtype)], self.filename)
 
