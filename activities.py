@@ -635,7 +635,6 @@ class ActivityMissingDetails(Gtk.Grid):
         label.set_valign(Gtk.Align.CENTER)
         label.set_margin_left(6)
         label.set_property('xalign', 0.0)
-        # TODO
         label.set_markup('<span font="16">' + self.activity.date_str + '</span>')
         self.attach(label, 1, 0, 1, 1)
 
@@ -644,7 +643,6 @@ class ActivityMissingDetails(Gtk.Grid):
         label.set_halign(Gtk.Align.START)
         label.set_valign(Gtk.Align.CENTER)
         label.set_property('xalign', 0.0)
-        # TODO
         label.set_markup('<span font="16">' + self.activity.time_str + '</span>')
         self.attach(label, 2, 0, 1, 1)
 
