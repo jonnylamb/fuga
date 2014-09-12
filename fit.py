@@ -84,8 +84,11 @@ class Fit(GObject.GObject):
     def get_elevation(self):
         return self.get('total_ascent')
 
-    def get_elapsed_time(self):
-        return self.time_triplet(self.get('total_elapsed_time'))
+    def get_elapsed_time(self, triplet=True):
+        if triplet:
+            return self.time_triplet(self.get('total_elapsed_time'))
+        else:
+            return self.get('total_elapsed_time')
 
     def get_moving_time(self):
         return self.time_triplet(self.get('total_timer_time'))
