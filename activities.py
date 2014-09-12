@@ -439,6 +439,8 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
     status_changed = Activity.status_changed
     strava_id_updated = Activity.strava_id_updated
 
+    ICON_SIZE = Gtk.IconSize.DND
+
     def __init__(self, window, config, antfile):
         Gtk.ListBoxRow.__init__(self)
         Activity.__init__(self, config, antfile)
@@ -450,7 +452,7 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         self.add(grid)
 
         self.image = Gtk.Image(icon_name='preferences-system-time-symbolic',
-            icon_size=Gtk.IconSize.DND)
+            icon_size=self.ICON_SIZE)
 
         self.label = Gtk.Label()
         self.label.set_ellipsize(Pango.EllipsizeMode.END)
@@ -478,16 +480,12 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
 
         if not self.downloaded:
             self.label.set_sensitive(False)
-            self.image.destroy()
-            self.image = Gtk.Image(icon_name='emblem-important-symbolic', icon_size=Gtk.IconSize.DND)
-            grid.attach(self.image, 0, 0, 1, 1)
+            self.image.set_from_icon_name('emblem-important-symbolic', self.ICON_SIZE)
         elif self.status == Activity.Status.DOWNLOADING:
             self.spinner.show()
             self.spinner.start()
             self.label.set_sensitive(False)
-            self.image.destroy()
-            self.image = Gtk.Image(icon_name='folder-download-symbolic', icon_size=Gtk.IconSize.DND)
-            grid.attach(self.image, 0, 0, 1, 1)
+            self.image.set_from_icon_name('folder-download-symbolic', self.ICON_SIZE)
 
         self.connect('status-changed', self.status_changed_cb)
         self.status_changed_cb(self, self.status)
