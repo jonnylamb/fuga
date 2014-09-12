@@ -42,10 +42,11 @@ class Fit(GObject.GObject):
 
         self.fit.parse()
 
-        # is this always right? no idea.
-        msg = self.fit.messages[-2]
-        if msg.type == 'data' and msg.name == 'session':
-            self.summary = msg
+        # find the summary message
+        for msg in self.fit.messages:
+            if msg.name == 'session':
+                self.summary = msg
+                break
 
         def emit_parsed():
             self.status = Fit.Status.PARSED
