@@ -379,9 +379,11 @@ class Activity(GObject.GObject):
 
     @staticmethod
     def sort_func(activity1, activity2, unused=None):
-        if activity1.date > activity2.date:
+        # use the antfile save date otherwise order can change depending on
+        # what has been ordered
+        if activity1.antfile.save_date > activity2.antfile.save_date:
             return -1
-        elif activity1.date < activity2.date:
+        elif activity1.antfile.save_date < activity2.antfile.save_date:
             return 1
         else:
             return 0
