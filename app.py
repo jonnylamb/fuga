@@ -20,6 +20,7 @@ class Run(Gtk.Application):
         GLib.set_application_name('Run')
 
         self.connect('activate', self.activate_cb)
+        self.connect('shutdown', self.shutdown_cb)
 
         self.config = self.create_config()
 
@@ -29,6 +30,7 @@ class Run(Gtk.Application):
         else:
             g = Garmin()
 
+        # TODO: so much
         def status_changed(garmin, status):
             print 'new status:', status
         g.connect('status-changed', status_changed)
@@ -46,6 +48,11 @@ class Run(Gtk.Application):
         g.connect('files', files)
 
         g.start()
+
+        self.garmin = g
+
+    def shutdown_cb(self, app):
+        self.garmin.disconnect()
 
     def create_config(self):
         path = os.path.dirname(CONFIG_PATH)

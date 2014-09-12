@@ -86,3 +86,6 @@ class FakeGarmin(GObject.GObject):
     def stop(self):
         self.emit('status-changed', Garmin.Status.DISCONNECTED)
         self.loop.quit()
+
+    def disconnect(self):
+        pass
