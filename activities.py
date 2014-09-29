@@ -924,10 +924,13 @@ class ActivityDetails(Gtk.ScrolledWindow):
                 except KeyError:
                     continue
 
-            view = self.embed.get_view()
-            view.add_layer(layer)
-            view.ensure_layers_visible(True)
-            view.set_property('zoom-level', 13)
+            if layer.get_nodes():
+                view = self.embed.get_view()
+                view.add_layer(layer)
+                view.ensure_layers_visible(True)
+                view.set_property('zoom-level', 13)
+            else:
+                self.embed.destroy()
 
             # now labels
             self.distance_label.set_markup('<span font="16">{0:.1f} km</span>\n' \
