@@ -847,7 +847,6 @@ class ActivityDetails(Gtk.ScrolledWindow):
 
         # map overlay
         self.embed = GtkChamplain.Embed()
-        view = self.embed.get_view()
         grid.attach(self.embed, 0, 2, 3, 1)
         self.embed.show_all()
 
