@@ -393,6 +393,15 @@ class Activity(GObject.GObject):
                 return datetime.strptime(start, '%Y-%m-%d %H:%M:%S')
             return self.antfile.save_date
 
+    @property
+    def sport(self):
+        if self.status == Activity.Status.PARSED:
+            return self.fit.get_sport()
+
+        # will default to None
+        return self.get_config('sport')
+
+
     # helper funcs
     def change_status(self, status):
         self.status = status
@@ -501,6 +510,16 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         self.time_str = self.date.strftime('%H:%M')
         markup = '<b>{}</b>\n<small>{}</small>'.format(self.date_str, self.time_str)
         self.label.set_markup(markup)
+
+        # TODO: use some sensible icons here
+        icons = {
+            'swimming': 'weather-fog',
+            'cycling': 'media-optical-cd-audio',
+            'running': 'network-transmit-receive'
+        }
+        if self.sport in icons:
+            self.image.set_from_icon_name('{}-symbolic'.format(icons[self.sport]),
+                self.ICON_SIZE)
 
 class UploadDialog(Gtk.Dialog):
     def __init__(self, activity):
