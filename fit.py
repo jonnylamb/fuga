@@ -63,7 +63,7 @@ class Fit(GObject.GObject):
             return default
 
         val = self.summary.get(name)
-        if not val:
+        if not val or val.value is None:
             return default
 
         return val.value
