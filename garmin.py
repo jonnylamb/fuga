@@ -123,7 +123,7 @@ class AntFile(object):
         self.antfile = antfile
 
         self.filename = '{0}_{1}_{2}.fit'.format(
-            self.date.strftime("%Y-%m-%d_%H-%M-%S"), #, time.gmtime()), TODO
+            self.save_date.strftime("%Y-%m-%d_%H-%M-%S"), #, time.gmtime()), TODO
             self.antfile.get_fit_sub_type(),
             self.antfile.get_fit_file_number())
 
