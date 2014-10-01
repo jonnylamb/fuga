@@ -137,6 +137,8 @@ class Window(Gtk.ApplicationWindow):
             self.delete_button.hide()
             self.pane.revealer.set_reveal_child(True)
 
+            self.right_toolbar.set_show_close_button(False)
+
         else:
             self.left_toolbar.get_style_context().remove_class('selection-mode')
             self.right_toolbar.get_style_context().remove_class('selection-mode')
@@ -154,6 +156,8 @@ class Window(Gtk.ApplicationWindow):
                 activity.status == Activity.Status.PARSED)
 
             self.pane.revealer.set_reveal_child(False)
+
+            self.right_toolbar.set_show_close_button(True)
 
     def row_selected_cb(self, activity_list, activity):
         if not activity:
