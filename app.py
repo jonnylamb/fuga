@@ -7,6 +7,7 @@ import ant.fs.file
 
 import style
 from activities import Window
+from loading import LoadingWindow
 from fakegarmin import FakeGarmin
 from garmin import Garmin
 
@@ -26,32 +27,33 @@ class Run(Gtk.Application):
 
         style.setup()
 
+    def file_list_downloaded_cb(self, garmin):
+        self.loading.destroy()
+        self.loading = None
+
+        ant_files = garmin.files
+        activities = ant_files[ant.fs.file.File.Identifier.ACTIVITY]
+        window = Window(self.config)
+
+        for activity in activities:
+            window.add_activity(activity)
+
+        self.add_window(window)
+        window.show_all()
+
     def activate_cb(self, data=None):
         if 'FAKE_GARMIN' in os.environ:
-            g = FakeGarmin()
+            self.garmin = FakeGarmin()
         else:
-            g = Garmin()
+            self.garmin = Garmin()
 
-        # TODO: so much
-        def status_changed_cb(garmin, status):
-            print 'new status:', status
-        g.connect('status-changed', status_changed_cb)
+        self.garmin.connect('file-list-downloaded', self.file_list_downloaded_cb)
 
-        def file_list_downloaded_cb(garmin):
-            ant_files = garmin.files
-            activities = ant_files[ant.fs.file.File.Identifier.ACTIVITY]
-            window = Window(self.config)
+        self.loading = LoadingWindow(self.garmin)
+        self.add_window(self.loading)
+        self.loading.show_all()
 
-            for activity in activities:
-                window.add_activity(activity)
-
-            self.add_window(window)
-            window.show_all()
-        g.connect('file-list-downloaded', file_list_downloaded_cb)
-
-        g.start()
-
-        self.garmin = g
+        self.garmin.start()
 
     def shutdown_cb(self, app):
         self.garmin.disconnect()
