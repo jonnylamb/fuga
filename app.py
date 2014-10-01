@@ -6,6 +6,7 @@ from gi.repository import Gtk, GLib, Gio
 
 import ant.fs.file
 
+import style
 from activities import Window
 from fakegarmin import FakeGarmin
 from garmin import Garmin
@@ -23,6 +24,8 @@ class Run(Gtk.Application):
         self.connect('shutdown', self.shutdown_cb)
 
         self.config = self.create_config()
+
+        style.setup()
 
     def activate_cb(self, data=None):
         if 'FAKE_GARMIN' in os.environ:
