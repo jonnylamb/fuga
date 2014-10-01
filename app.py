@@ -1,5 +1,4 @@
 import os
-import pickle
 from ConfigParser import ConfigParser
 
 from gi.repository import Gtk, GLib, Gio
@@ -34,12 +33,12 @@ class Run(Gtk.Application):
             g = Garmin()
 
         # TODO: so much
-        def status_changed(garmin, status):
+        def status_changed_cb(garmin, status):
             print 'new status:', status
-        g.connect('status-changed', status_changed)
+        g.connect('status-changed', status_changed_cb)
 
-        def files(garmin, p):
-            ant_files = pickle.loads(p)
+        def file_list_downloaded_cb(garmin):
+            ant_files = garmin.files
             activities = ant_files[ant.fs.file.File.Identifier.ACTIVITY]
             window = Window(self.config)
 
@@ -48,7 +47,7 @@ class Run(Gtk.Application):
 
             self.add_window(window)
             window.show_all()
-        g.connect('files', files)
+        g.connect('file-list-downloaded', file_list_downloaded_cb)
 
         g.start()
 

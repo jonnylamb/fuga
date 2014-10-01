@@ -1,5 +1,4 @@
 import os
-import pickle
 import random
 from datetime import datetime
 
@@ -24,8 +23,8 @@ class FakeGarmin(GObject.GObject):
     def status_changed(self, status):
         pass
 
-    @GObject.Signal(arg_types=(str,))
-    def files(self, files):
+    @GObject.Signal
+    def file_list_downloaded(self):
         pass
 
     def __init__(self, authentication_fail=False):
@@ -36,6 +35,8 @@ class FakeGarmin(GObject.GObject):
         self.authentication_fail = authentication_fail
 
         self.wait_time = int(os.environ.get('FAKE_GARMIN_TIME', 200))
+
+        self.files = {}
 
         # todo
         self.base_path = os.path.join(GLib.get_user_config_dir(),
@@ -79,7 +80,8 @@ class FakeGarmin(GObject.GObject):
                 files[ant.fs.file.File.Identifier.ACTIVITY].append(
                     FakeAntFile(self.base_path, a))
 
-        self.emit('files', pickle.dumps(files)) # TODO
+        self.files = files
+        self.emit('file-list-downloaded')
 
         self.stop()
 

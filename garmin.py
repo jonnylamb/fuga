@@ -2,7 +2,6 @@ import os
 import sys
 import array
 import time
-import pickle
 
 from gi.repository import GLib, GObject
 
@@ -151,8 +150,8 @@ class Garmin(ant.fs.manager.Application,
     def status_changed(self, status):
         pass
 
-    @GObject.Signal(arg_types=(str,))
-    def files(self, files):
+    @GObject.Signal
+    def file_list_downloaded(self):
         pass
 
     def __init__(self):
@@ -164,6 +163,7 @@ class Garmin(ant.fs.manager.Application,
 
         self.status = Garmin.Status.NONE
         self.device = None
+        self.files = {}
 
     def setup_channel(self, channel):
         channel.set_period(4096)
@@ -212,7 +212,8 @@ class Garmin(ant.fs.manager.Application,
             if subtype in files:
                 files[subtype].append(AntFile(self.device, antfile))
 
-        self.emit('files', pickle.dumps(files)) # TODO
+        self.files = files
+        self.emit('file-list-downloaded')
 
     def start(self):
         self.emit('status-changed', Garmin.Status.CONNECTING)
