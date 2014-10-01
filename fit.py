@@ -1,15 +1,8 @@
-import threading
-
 import fitparse
 
 from gi.repository import GObject
 
-# http://amix.dk/blog/post/19346
-def run_in_thread(fn):
-    def run(*k, **kw):
-        t = threading.Thread(target=fn, args=k, kwargs=kw)
-        t.start()
-    return run
+from utils import run_in_thread
 
 class Fit(GObject.GObject):
 
