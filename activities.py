@@ -241,28 +241,14 @@ class ListPane(Gtk.Frame):
         self.revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
         grid.add(self.revealer)
 
-        bar = Gtk.Toolbar()
-        bar.get_style_context().add_class(Gtk.STYLE_CLASS_MENUBAR)
-        bar.get_style_context().add_class('contacts-edit-toolbar')
+        bar = Gtk.ActionBar()
         self.revealer.add(bar)
 
-        # TODO
-        #tool_item = Gtk.ToolItem()
-        #bar.insert(tool_item, -1)
-        #delete_button = Gtk.Button('Upload')
-        #tool_item.add(delete_button)
-
-        tool_item = Gtk.SeparatorToolItem()
-        tool_item.set_expand(True)
-        tool_item.set_draw(False)
-        bar.insert(tool_item, -1)
-
-        tool_item = Gtk.ToolItem()
-        bar.insert(tool_item, -1)
+        # TODO: add upload button
         self.delete_button = Gtk.Button('Delete')
         self.delete_button.get_style_context().add_class('destructive-action')
         self.delete_button.set_sensitive(False)
-        tool_item.add(self.delete_button)
+        bar.pack_end(self.delete_button)
 
 class ActivityList(Gtk.ListBox):
     def __init__(self):
@@ -768,21 +754,11 @@ class ActivityDownloadingDetails(Gtk.Box):
             return True
         GLib.timeout_add(100, pulse)
 
-        # toolbar
-        bar = Gtk.Toolbar()
-        bar.get_style_context().add_class(Gtk.STYLE_CLASS_MENUBAR)
-        bar.get_style_context().add_class('contacts-edit-toolbar')
+        bar = Gtk.ActionBar()
         self.pack_start(bar, False, False, 0)
 
-        tool_item = Gtk.SeparatorToolItem()
-        tool_item.set_expand(True)
-        tool_item.set_draw(False)
-        bar.insert(tool_item, -1)
-
-        tool_item = Gtk.ToolItem()
-        bar.insert(tool_item, -1)
         button = Gtk.Button('Cancel download')
-        tool_item.add(button)
+        bar.pack_end(button)
 
 class ActivityDetails(Gtk.ScrolledWindow):
     def __init__(self, activity):
@@ -850,23 +826,14 @@ class ActivityDetails(Gtk.ScrolledWindow):
         grid.attach(self.embed, 0, 2, 3, 1)
         self.embed.show_all()
 
-        # toolbar
-        bar = Gtk.Toolbar()
-        bar.get_style_context().add_class(Gtk.STYLE_CLASS_MENUBAR)
-        bar.get_style_context().add_class('contacts-edit-toolbar')
+        # action bar
+        bar = Gtk.ActionBar()
         box.pack_start(bar, False, False, 0)
 
-        tool_item = Gtk.SeparatorToolItem()
-        tool_item.set_expand(True)
-        tool_item.set_draw(False)
-        bar.insert(tool_item, -1)
-
-        tool_item = Gtk.ToolItem()
-        bar.insert(tool_item, -1)
         self.upload_button = Gtk.Button('Upload to Strava')
         if self.activity.strava_id:
             self.upload_button.set_label('View activity on Strava')
-        tool_item.add(self.upload_button)
+        bar.pack_end(self.upload_button)
         self.upload_button.connect('clicked', self.upload_view_clicked_cb)
         self.activity.connect('strava-id-updated', self.strava_id_updated_cb)
 
