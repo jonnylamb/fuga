@@ -27,11 +27,10 @@ class Run(Gtk.Application):
 
         style.setup()
 
-    def file_list_downloaded_cb(self, garmin):
+    def got_file_list_cb(self, ant_files):
         self.loading.destroy()
         self.loading = None
 
-        ant_files = garmin.files
         activities = ant_files[ant.fs.file.File.Identifier.ACTIVITY]
         window = Window(self.config)
 
@@ -47,16 +46,14 @@ class Run(Gtk.Application):
         else:
             self.garmin = Garmin()
 
-        self.garmin.connect('file-list-downloaded', self.file_list_downloaded_cb)
-
         self.loading = LoadingWindow(self.garmin)
         self.add_window(self.loading)
         self.loading.show_all()
 
-        self.garmin.start()
+        self.garmin.do(self.garmin.get_file_list, self.got_file_list_cb)
 
     def shutdown_cb(self, app):
-        self.garmin.disconnect()
+        self.garmin.shutdown()
 
     def create_config(self):
         path = os.path.dirname(CONFIG_PATH)

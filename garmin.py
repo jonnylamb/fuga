@@ -150,10 +150,6 @@ class Garmin(ant.fs.manager.Application,
     def status_changed(self, status):
         pass
 
-    @GObject.Signal
-    def file_list_downloaded(self):
-        pass
-
     def __init__(self):
         ant.fs.manager.Application.__init__(self)
         GObject.GObject.__init__(self)
@@ -163,7 +159,12 @@ class Garmin(ant.fs.manager.Application,
 
         self.status = Garmin.Status.NONE
         self.device = None
-        self.files = {}
+        self.funcs = []
+
+    def change_status(self, status):
+        self.status = status
+        # run in ui thread
+        GLib.idle_add(lambda: self.emit('status-changed', status))
 
     def setup_channel(self, channel):
         channel.set_period(4096)
@@ -178,7 +179,7 @@ class Garmin(ant.fs.manager.Application,
         return True
 
     def on_authentication(self, beacon):
-        self.emit('status-changed', Garmin.Status.AUTHENTICATION)
+        self.change_status(Garmin.Status.AUTHENTICATION)
         serial, name = self.authentication_serial()
         device = Device(self.path, serial, name)
 
@@ -193,12 +194,18 @@ class Garmin(ant.fs.manager.Application,
             self.device = device
             return True
         except ant.fs.manager.AntFSAuthenticationException as e:
-            self.emit('status-changed', Garmin.Status.AUTHENTICATION_FAILED)
+            self.change_status(Garmin.Status.AUTHENTICATION_FAILED)
             return False
 
     def on_transport(self, beacon):
-        self.emit('status-changed', Garmin.Status.CONNECTED)
+        self.change_status(Garmin.Status.CONNECTED)
 
+        while self.funcs:
+            f, cb = self.funcs.pop(0)
+            f(self, cb)
+
+    @staticmethod
+    def get_file_list(self, cb):
         directory = self.download_directory()
 
         # get a list of remote files
@@ -212,12 +219,25 @@ class Garmin(ant.fs.manager.Application,
             if subtype in files:
                 files[subtype].append(AntFile(self.device, antfile))
 
-        self.files = files
-        self.emit('file-list-downloaded')
+        # run in ui thread
+        GLib.idle_add(lambda: cb(files))
 
+    def do(self, func, cb):
+        self.funcs.append((func, cb))
+        if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
+            self.start()
+
+    def shutdown(self):
+        self.funcs = []
+
+    @utils.run_in_thread
     def start(self):
-        self.emit('status-changed', Garmin.Status.CONNECTING)
+        if not self.funcs:
+            return
+
+        self.change_status(Garmin.Status.CONNECTING)
         ant.fs.manager.Application.start(self)
 
     def disconnect(self):
         ant.fs.manager.Application.disconnect(self)
+        self.change_status(Garmin.Status.DISCONNECTED)

@@ -7,6 +7,7 @@ from gi.repository import GLib, GObject
 import ant.fs.file
 
 from garmin import Garmin, FILETYPES, AntFile
+import utils
 
 class FakeAntFile(object):
     def __init__(self, base_path, name):
@@ -23,33 +24,31 @@ class FakeGarmin(GObject.GObject):
     def status_changed(self, status):
         pass
 
-    @GObject.Signal
-    def file_list_downloaded(self):
-        pass
-
     def __init__(self, authentication_fail=False):
         GObject.GObject.__init__(self)
 
         self.loop = GObject.MainLoop()
+        self.status = Garmin.Status.NONE
 
         self.authentication_fail = authentication_fail
-
         self.wait_time = int(os.environ.get('FAKE_GARMIN_TIME', 200))
 
-        self.files = {}
+        self.funcs = []
 
-        # todo
-        self.base_path = os.path.join(GLib.get_user_config_dir(),
-            'garmin-extractor', '3868484997')
+    def change_status(self, status):
+        self.status = status
+        # run in ui thread
+        GLib.idle_add(lambda: self.emit('status-changed', status))
 
+    @utils.run_in_thread
     def start(self):
-        self.emit('status-changed', Garmin.Status.CONNECTING)
+        self.change_status(Garmin.Status.CONNECTING)
 
         GLib.timeout_add(self.wait_time, self.authentication_cb)
         self.loop.run()
 
     def authentication_cb(self):
-        self.emit('status-changed', Garmin.Status.AUTHENTICATION)
+        self.change_status(Garmin.Status.AUTHENTICATION)
 
         if self.authentication_fail:
             GLib.timeout_add(self.wait_time, self.authentication_fail_cb)
@@ -57,37 +56,46 @@ class FakeGarmin(GObject.GObject):
             GLib.timeout_add(self.wait_time, self.connected_cb)
 
     def authentication_fail_cb(self):
-        self.emit('status-changed', Garmin.Status.AUTHENTICATION_FAILED)
+        self.change_status(Garmin.Status.AUTHENTICATION_FAILED)
 
     def connected_cb(self):
-        self.emit('status-changed', Garmin.Status.CONNECTED)
+        self.change_status(Garmin.Status.CONNECTED)
+        GLib.timeout_add(self.wait_time, self.worker_cb)
 
-        GLib.timeout_add(self.wait_time, self.files_cb)
+    def worker_cb(self):
+        while self.funcs:
+            f, cb = self.funcs.pop(0)
+            f(self, cb)
 
-    def files_cb(self):
+        self.loop.quit()
+        self.change_status(Garmin.Status.DISCONNECTED)
+
+    @staticmethod
+    def get_file_list(self, cb):
+        # todo
+        base_path = os.path.join(GLib.get_user_config_dir(),
+            'garmin-extractor', '3868484997')
+
         files = {}
         for filetype in FILETYPES:
             files[filetype] = []
 
         if 'FAKE_GARMIN_NO_ACTIVITIES' not in os.environ:
-            path = os.path.join(self.base_path, 'activities')
+            path = os.path.join(base_path, 'activities')
             activities = os.listdir(path)
 
-            # shuffle the activities list as we don't depend on an ordering.
             random.shuffle(activities)
 
             for a in activities:
                 files[ant.fs.file.File.Identifier.ACTIVITY].append(
-                    FakeAntFile(self.base_path, a))
+                    FakeAntFile(base_path, a))
 
-        self.files = files
-        self.emit('file-list-downloaded')
+        GLib.idle_add(lambda: cb(files))
 
-        self.stop()
+    def do(self, func, cb):
+        self.funcs.append((func, cb))
+        if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
+            self.start()
 
-    def stop(self):
-        self.emit('status-changed', Garmin.Status.DISCONNECTED)
-        self.loop.quit()
-
-    def disconnect(self):
-        pass
+    def shutdown(self):
+        self.funcs = []
