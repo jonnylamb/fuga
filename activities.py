@@ -391,7 +391,6 @@ class Activity(GObject.GObject):
         # will default to None
         return self.get_config('sport')
 
-
     # helper funcs
     def change_status(self, status):
         self.status = status
