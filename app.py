@@ -32,7 +32,7 @@ class Correre(Gtk.Application):
         self.loading = None
 
         activities = ant_files[ant.fs.file.File.Identifier.ACTIVITY]
-        window = Window(self.config)
+        window = Window(self)
 
         for activity in activities:
             window.add_activity(activity)

@@ -14,10 +14,10 @@ import fit
 import strava
 
 class Window(Gtk.ApplicationWindow):
-    def __init__(self, config):
+    def __init__(self, app):
         Gtk.ApplicationWindow.__init__(self)
 
-        self.config = config
+        self.app = app
 
         self.activities = []
 
@@ -84,7 +84,7 @@ class Window(Gtk.ApplicationWindow):
         self.hbox.pack_start(self.content, True, True, 0)
 
     def add_activity(self, antfile):
-        row = ActivityRow(self, self.config, antfile)
+        row = ActivityRow(self, self.app, antfile)
         row.selector_button.connect('toggled', self.activity_toggled_cb)
         self.pane.activity_list.prepend(row)
         self.activities.append(row)
@@ -287,10 +287,10 @@ class Activity(GObject.GObject):
         PARSING = 3
         PARSED = 4
 
-    def __init__(self, config, antfile):
+    def __init__(self, app, antfile):
         GObject.GObject.__init__(self)
 
-        self.config = config
+        self.app = app
         self.antfile = antfile
         self.fit = None
         self.status = Activity.Status.NONE
@@ -340,15 +340,15 @@ class Activity(GObject.GObject):
 
     # config options
     def get_config(self, key, default=None):
-        if self.config.has_option(self.filename, key):
-            return self.config.get(self.filename, key)
+        if self.app.config.has_option(self.filename, key):
+            return self.app.config.get(self.filename, key)
         return default
 
     def set_config(self, key, value):
-        if not self.config.has_section(self.filename):
-            self.config.add_section(self.filename)
-        self.config.set(self.filename, key, value)
-        self.config.save()
+        if not self.app.config.has_section(self.filename):
+            self.app.config.add_section(self.filename)
+        self.app.config.set(self.filename, key, value)
+        self.app.config.save()
 
     # properties
     @property
@@ -440,9 +440,9 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
 
     ICON_SIZE = Gtk.IconSize.DND
 
-    def __init__(self, window, config, antfile):
+    def __init__(self, window, app, antfile):
         Gtk.ListBoxRow.__init__(self)
-        Activity.__init__(self, config, antfile)
+        Activity.__init__(self, app, antfile)
 
         self.window = window
 
@@ -559,10 +559,10 @@ class UploadDialog(Gtk.Dialog):
         GLib.timeout_add_seconds(2, self.destroy)
 
 class StravaAuthDialog(Gtk.Dialog):
-    def __init__(self, config):
+    def __init__(self, app):
         Gtk.Dialog.__init__(self)
 
-        self.config = config
+        self.app = app
 
         headerbar = Gtk.HeaderBar()
         headerbar.set_title('Authorize Strava')
@@ -613,10 +613,10 @@ class StravaAuthDialog(Gtk.Dialog):
                 token = data.get('access_token')
 
                 if token:
-                    if not self.config.has_section('strava'):
-                        self.config.add_section('strava')
-                    self.config.set('strava', 'access_token', token)
-                    self.config.save()
+                    if not self.app.config.has_section('strava'):
+                        self.app.config.add_section('strava')
+                    self.app.config.set('strava', 'access_token', token)
+                    self.app.config.save()
 
                     self.emit('response', Gtk.ResponseType.ACCEPT)
 
@@ -849,10 +849,10 @@ class ActivityDetails(Gtk.ScrolledWindow):
             url = strava.ACTIVITY_URL.format(self.activity.strava_id)
             Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
         else:
-            if self.activity.config.has_option('strava', 'access_token'):
+            if self.activity.app.config.has_option('strava', 'access_token'):
                 self.activity.upload_to_strava()
             else:
-                dialog = StravaAuthDialog(self.activity.config)
+                dialog = StravaAuthDialog(self.activity.app)
                 dialog.connect('response', self.auth_dialog_response_cb)
                 dialog.set_transient_for(self.activity.window)
                 dialog.show_all()
