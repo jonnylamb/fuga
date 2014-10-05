@@ -22,7 +22,7 @@ class Window(Gtk.ApplicationWindow):
         self.activities = []
 
         self.set_default_size(1000, 700)
-        self.set_title('Run')
+        self.set_title('Correre')
 
         #  titlebar
         titlebar_box = Gtk.Box()

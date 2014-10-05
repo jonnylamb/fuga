@@ -1,7 +1,7 @@
 import sys
 
-from app import Run
+from app import Correre
 
 if __name__ == '__main__':
-    app = Run()
+    app = Correre()
     app.run(sys.argv)

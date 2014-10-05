@@ -13,12 +13,12 @@ from garmin import Garmin
 
 CONFIG_PATH = os.path.join(GLib.get_user_config_dir(), 'correre', 'correre.ini')
 
-class Run(Gtk.Application):
+class Correre(Gtk.Application):
     def __init__(self):
-        Gtk.Application.__init__(self, application_id='com.jonnylamb.Run',
+        Gtk.Application.__init__(self, application_id='com.jonnylamb.Correre',
                                  flags=Gio.ApplicationFlags.FLAGS_NONE)
 
-        GLib.set_application_name('Run')
+        GLib.set_application_name('Correre')
 
         self.connect('activate', self.activate_cb)
         self.connect('shutdown', self.shutdown_cb)

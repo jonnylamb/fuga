@@ -136,7 +136,7 @@ class AntFile(object):
 class Garmin(ant.fs.manager.Application,
              GObject.GObject):
 
-    PRODUCT_NAME = "run"
+    PRODUCT_NAME = "correre"
 
     class Status:
         NONE = 0
