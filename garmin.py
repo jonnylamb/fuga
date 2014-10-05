@@ -201,8 +201,8 @@ class Garmin(ant.fs.manager.Application,
         self.change_status(Garmin.Status.CONNECTED)
 
         while self.funcs:
-            f, cb = self.funcs.pop(0)
-            f(self, cb)
+            f, cb, args = self.funcs.pop(0)
+            f(self, cb, *args)
 
     @staticmethod
     def get_file_list(self, cb):
@@ -222,8 +222,8 @@ class Garmin(ant.fs.manager.Application,
         # run in ui thread
         GLib.idle_add(lambda: cb(files))
 
-    def do(self, func, cb):
-        self.funcs.append((func, cb))
+    def do(self, func, cb, *args):
+        self.funcs.append((func, cb, args))
         if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
             self.start()
 

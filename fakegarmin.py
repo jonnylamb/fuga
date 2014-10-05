@@ -64,8 +64,8 @@ class FakeGarmin(GObject.GObject):
 
     def worker_cb(self):
         while self.funcs:
-            f, cb = self.funcs.pop(0)
-            f(self, cb)
+            f, cb, args = self.funcs.pop(0)
+            f(self, cb, *args)
 
         self.loop.quit()
         self.change_status(Garmin.Status.DISCONNECTED)
@@ -92,8 +92,8 @@ class FakeGarmin(GObject.GObject):
 
         GLib.idle_add(lambda: cb(files))
 
-    def do(self, func, cb):
-        self.funcs.append((func, cb))
+    def do(self, func, cb, *args):
+        self.funcs.append((func, cb, args))
         if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
             self.start()
 
