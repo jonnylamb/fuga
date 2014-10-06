@@ -695,6 +695,11 @@ class ActivityMissingDetails(Gtk.Grid):
         button.set_focus_on_click(False)
         self.attach(button, 0, 2, 3, 1)
 
+        button.connect('clicked', self.download_clicked_cb)
+
+    def download_clicked_cb(self, button):
+        self.activity.download()
+
 class NoActivities(Gtk.Grid):
     def __init__(self):
         Gtk.Grid.__init__(self)
@@ -792,6 +797,16 @@ class ActivityDownloadingDetails(Gtk.Box):
 
         #button = Gtk.Button('Cancel download')
         #bar.pack_end(button)
+
+        self.activity.connect('download-progress', self.download_progress_cb)
+
+    def download_progress_cb(self, activity, fraction):
+        if self.pulse_timeout_id:
+            GLib.source_remove(self.pulse_timeout_id)
+            self.pulse_timeout_id = 0
+
+        self.progress.set_fraction(fraction)
+        self.label.set_markup('<i>Downloading...</i>')
 
 class ActivityDetails(Gtk.ScrolledWindow):
     def __init__(self, activity):
