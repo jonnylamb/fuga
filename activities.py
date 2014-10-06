@@ -296,6 +296,9 @@ class Activity(GObject.GObject):
         self.status = Activity.Status.NONE
         self.uploader = None
 
+        self.setup_fit()
+
+    def setup_fit(self):
         if self.downloaded:
             self.fit = fit.Fit(self.full_path)
             self.fit.connect('status-changed', self.fit_status_changed_cb)
