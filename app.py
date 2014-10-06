@@ -21,7 +21,6 @@ class Correre(Gtk.Application):
         GLib.set_application_name('Correre')
 
         self.connect('activate', self.activate_cb)
-        self.connect('shutdown', self.shutdown_cb)
 
         self.config = self.create_config()
 
@@ -41,6 +40,12 @@ class Correre(Gtk.Application):
 
         self.add_window(window)
         window.show_all()
+
+        window.connect('destroy', self.window_destroy_cb)
+
+    def window_destroy_cb(self, window):
+        if self.garmin:
+            self.garmin.shutdown()
 
     def setup_garmin(self):
         if 'FAKE_GARMIN' in os.environ:
@@ -75,10 +80,6 @@ class Correre(Gtk.Application):
         self.loading.show_all()
 
         self.do('get-file-list', self.got_file_list_cb)
-
-    def shutdown_cb(self, app):
-        if self.garmin:
-            self.garmin.shutdown()
 
     def create_config(self):
         path = os.path.dirname(CONFIG_PATH)
