@@ -92,7 +92,7 @@ class FakeGarmin(GObject.GObject):
 
         GLib.idle_add(lambda: cb(files))
 
-    def do(self, func, cb, *args):
+    def queue(self, func, cb, *args):
         self.funcs.append((func, cb, args))
         if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
             self.start()
