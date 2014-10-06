@@ -494,6 +494,10 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         dialog.show_all()
 
     def status_changed_cb(self, activity, status):
+        if status == Activity.Status.DOWNLOADING:
+            self.image.set_from_icon_name('folder-download-symbolic', self.ICON_SIZE)
+            return
+
         # TODO: change format
         self.date_str = self.date.strftime('%A %d %b %Y')
         self.time_str = self.date.strftime('%H:%M')
