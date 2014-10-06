@@ -62,6 +62,7 @@ class Correre(Gtk.Application):
         # perhaps we should just create methods on this class for each action?
         func = {
             'get-file-list': self.garmin.get_file_list,
+            'download-file': self.garmin.download_file,
         }[action]
 
         self.garmin.queue(func, cb, *args)

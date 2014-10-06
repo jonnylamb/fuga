@@ -341,6 +341,10 @@ class Activity(GObject.GObject):
         # change the text on one button.
         pass
 
+    @GObject.Signal(arg_types=(float,))
+    def download_progress(self, fraction):
+        pass
+
     # config options
     def get_config(self, key, default=None):
         if self.app.config.has_option(self.filename, key):
@@ -434,11 +438,30 @@ class Activity(GObject.GObject):
 
         return self.uploader
 
+    def download(self):
+        if self.downloaded:
+            return
+
+        def progress_cb(fraction):
+            self.emit('download-progress', fraction)
+
+        self.app.do('download-file', self.file_downloaded_cb,
+            self.antfile, progress_cb)
+
+        self.change_status(Activity.Status.DOWNLOADING)
+
+    def file_downloaded_cb(self, data):
+        with open(self.full_path, 'wb') as f:
+            f.write(data)
+        self.setup_fit()
+        self.change_status(Activity.Status.DOWNLOADED)
+
 class ActivityRow(Gtk.ListBoxRow, Activity):
 
     # see comment about signals in Activity class definition
     status_changed = Activity.status_changed
     strava_id_updated = Activity.strava_id_updated
+    download_progress = Activity.download_progress
 
     ICON_SIZE = Gtk.IconSize.DND
 

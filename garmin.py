@@ -226,6 +226,16 @@ class Garmin(ant.fs.manager.Application,
         # run in ui thread
         GLib.idle_add(lambda: cb(files))
 
+    @staticmethod
+    def download_file(self, done_cb, antfile, progress_cb):
+        def cb(new_progress):
+            GLib.idle_add(lambda: progress_cb(new_progress))
+
+        data = self.download(antfile.index, cb)
+
+        # run in ui thread
+        GLib.idle_add(lambda: done_cb(data))
+
     def queue(self, func, cb, *args):
         self.funcs.append((func, cb, args))
         if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
