@@ -743,25 +743,25 @@ class ActivityDownloadingDetails(Gtk.Box):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         grid.attach(box, 0, 2, 3, 1)
 
-        label = Gtk.Label('')
-        label.set_markup('<i>Waiting to download...</i>')
-        label.set_property('xalign', 0.0)
-        box.pack_start(label, False, False, 3)
+        self.label = Gtk.Label('')
+        self.label.set_markup('<i>Waiting to download...</i>')
+        self.label.set_property('xalign', 0.0)
+        box.pack_start(self.label, False, False, 3)
 
-        progress = Gtk.ProgressBar()
-        progress.pulse()
-        box.pack_start(progress, False, False, 0)
+        self.progress = Gtk.ProgressBar()
+        box.pack_start(self.progress, False, False, 0)
 
         def pulse():
-            progress.pulse()
+            self.progress.pulse()
             return True
-        GLib.timeout_add(100, pulse)
+        self.pulse_timeout_id = GLib.timeout_add(100, pulse)
 
-        bar = Gtk.ActionBar()
-        self.pack_start(bar, False, False, 0)
+        # TODO: we can't actually cancel these downloads though
+        #bar = Gtk.ActionBar()
+        #self.pack_start(bar, False, False, 0)
 
-        button = Gtk.Button('Cancel download')
-        bar.pack_end(button)
+        #button = Gtk.Button('Cancel download')
+        #bar.pack_end(button)
 
 class ActivityDetails(Gtk.ScrolledWindow):
     def __init__(self, activity):
