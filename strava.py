@@ -28,7 +28,7 @@ class Uploader(GObject.GObject):
     def __init__(self, activity):
         GObject.GObject.__init__(self)
 
-        self.token = activity.config.get('strava', 'access_token')
+        self.token = activity.app.config.get('strava', 'access_token')
         self.activity = activity
 
         self.session = Soup.Session()
