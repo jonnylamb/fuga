@@ -165,6 +165,9 @@ class Garmin(ant.fs.manager.Application,
         self.device = None
         self.funcs = []
 
+        self.loop = None
+        self.timeout_source = None
+
     def change_status(self, status):
         self.status = status
         # run in ui thread
@@ -204,9 +207,35 @@ class Garmin(ant.fs.manager.Application,
     def on_transport(self, beacon):
         self.change_status(Garmin.Status.CONNECTED)
 
-        while self.funcs:
-            f, cb, args = self.funcs.pop(0)
-            f(self, cb, *args)
+        while True:
+            if self.timeout_source:
+                self.timeout_source = None
+                return
+
+            while self.funcs:
+                f, cb, args = self.funcs.pop(0)
+                f(self, cb, *args)
+
+            # we've run out of things to do for now. set a timer so we don't
+            # disconnect immediately.
+
+            # use a new context as we don't want to get mixed up with the
+            # other mainloop currently running
+            context = GLib.MainContext()
+            self.loop = GLib.MainLoop(context)
+            def timeout_cb(data=None):
+                self.loop.quit()
+                self.loop = None
+            self.timeout_source = GLib.timeout_source_new_seconds(5)
+            self.timeout_source.set_callback(timeout_cb)
+            self.timeout_source.attach(context)
+            self.loop.run()
+
+    def cancel_timer(self):
+        if self.timeout_source:
+            self.timeout_source.destroy()
+            self.loop.quit()
+            self.loop = None
 
     @staticmethod
     def get_file_list(self, cb):
@@ -240,9 +269,12 @@ class Garmin(ant.fs.manager.Application,
         self.funcs.append((func, cb, args))
         if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
             self.start()
+        elif self.timeout_source:
+            self.cancel_timer()
 
     def shutdown(self):
         self.funcs = []
+        self.cancel_timer()
 
     @utils.run_in_thread
     def start(self):
