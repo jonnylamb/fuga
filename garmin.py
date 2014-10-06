@@ -133,6 +133,10 @@ class AntFile(object):
     def save_date(self):
         return self.antfile.get_date()
 
+    @property
+    def index(self):
+        return self.antfile.get_index()
+
 class Garmin(ant.fs.manager.Application,
              GObject.GObject):
 
