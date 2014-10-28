@@ -231,9 +231,11 @@ class Garmin(ant.fs.manager.Application,
             self.timeout_source.attach(context)
             self.loop.run()
 
-    def cancel_timer(self):
+    def cancel_timer(self, remove_source=False):
         if self.timeout_source:
             self.timeout_source.destroy()
+            if remove_source:
+                self.timeout_source = None
             self.loop.quit()
             self.loop = None
 
@@ -270,7 +272,7 @@ class Garmin(ant.fs.manager.Application,
         if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
             self.start()
         elif self.timeout_source:
-            self.cancel_timer()
+            self.cancel_timer(True)
 
     def shutdown(self):
         self.funcs = []
