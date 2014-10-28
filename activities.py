@@ -442,6 +442,9 @@ class Activity(GObject.GObject):
         if self.downloaded:
             return
 
+        if self.status == Activity.Status.DOWNLOADING:
+            return
+
         def progress_cb(fraction):
             self.emit('download-progress', fraction)
 
