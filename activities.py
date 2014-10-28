@@ -508,11 +508,6 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         if not self.downloaded:
             self.label.set_sensitive(False)
             self.image.set_from_icon_name('emblem-important-symbolic', self.ICON_SIZE)
-        elif self.status == Activity.Status.DOWNLOADING:
-            self.spinner.show()
-            self.spinner.start()
-            self.label.set_sensitive(False)
-            self.image.set_from_icon_name('folder-download-symbolic', self.ICON_SIZE)
 
         self.connect('status-changed', self.status_changed_cb)
         self.status_changed_cb(self, self.status)
@@ -523,9 +518,15 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         dialog.show_all()
 
     def status_changed_cb(self, activity, status):
-        if status == Activity.Status.DOWNLOADING:
+        downloading = (status == Activity.Status.DOWNLOADING)
+        self.spinner.set_visible(downloading)
+        self.spinner.set_property('active', downloading)
+
+        if downloading:
             self.image.set_from_icon_name('folder-download-symbolic', self.ICON_SIZE)
             return
+        elif status == Activity.Status.DOWNLOADED:
+            self.label.set_sensitive(True)
 
         # TODO: change format
         self.date_str = self.date.strftime('%A %d %b %Y')
