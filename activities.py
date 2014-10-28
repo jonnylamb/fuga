@@ -527,7 +527,7 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         # TODO: change format
         self.date_str = self.date.strftime('%A %d %b %Y')
         self.time_str = self.date.strftime('%H:%M')
-        markup = '<b>{}</b>\n<small>{}</small>'.format(self.date_str, self.time_str)
+        markup = '{}\n<small>{}</small>'.format(self.date_str, self.time_str)
         self.label.set_markup(markup)
 
         # TODO: use some sensible icons here
