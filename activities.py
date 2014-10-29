@@ -153,6 +153,7 @@ class Window(Gtk.ApplicationWindow):
 
             activity = self.pane.activity_list.get_selected_row()
             self.delete_button.set_visible(
+                activity.status == Activity.Status.NONE or
                 activity.status == Activity.Status.PARSED)
 
             self.pane.revealer.set_reveal_child(False)
@@ -197,8 +198,9 @@ class Window(Gtk.ApplicationWindow):
             self.content = ActivityDetails(activity)
 
         self.delete_button.set_visible(
-            activity.status == Activity.Status.PARSED and \
-            not self.select_button.get_active())
+            activity.status == Activity.Status.NONE or
+            (activity.status == Activity.Status.PARSED and \
+            not self.select_button.get_active()))
 
         self.hbox.pack_start(self.content, True, True, 0)
         self.content.show_all()
