@@ -57,6 +57,7 @@ class Window(Gtk.ApplicationWindow):
         self.delete_button = Gtk.Button(label='Delete')
         self.delete_button.get_style_context().add_class('destructive-action')
         self.delete_button.set_no_show_all(True)
+        self.delete_button.connect('clicked', self.delete_clicked_cb)
         self.right_toolbar.pack_end(self.delete_button)
 
         # keep all menu buttons the same height
@@ -160,11 +161,17 @@ class Window(Gtk.ApplicationWindow):
 
             self.right_toolbar.set_show_close_button(True)
 
-    def row_selected_cb(self, activity_list, activity):
-        if not activity:
-            return
+    def delete_clicked_cb(self, button):
+        activity = self.pane.activity_list.get_selected_row()
+        activity.delete()
 
-        self.reset_content(activity)
+    def row_selected_cb(self, activity_list, activity):
+        if activity:
+            self.reset_content(activity)
+        else:
+            activity = self.activities[self.selected]
+            self.pane.activity_list.select_row(activity)
+            activity.changed()
 
     def activity_status_changed_cb(self, activity, status):
         self.reset_content(activity)
@@ -197,6 +204,12 @@ class Window(Gtk.ApplicationWindow):
         elif activity.status == Activity.Status.PARSED:
             self.content = ActivityDetails(activity)
 
+        # just deleted
+        elif activity.status == Activity.Status.DELETED:
+            self.activities.remove(activity)
+            self.pane.activity_list.remove(activity)
+            return
+
         self.delete_button.set_visible(
             activity.status == Activity.Status.NONE or
             (activity.status == Activity.Status.PARSED and \
@@ -207,6 +220,11 @@ class Window(Gtk.ApplicationWindow):
 
         title = activity.date.strftime('%A %d %B at %H:%M')
         self.right_toolbar.set_title(title)
+
+        # save the index of the current activity so if we delete this
+        # activity, we can jump to the next activity in the list (which will
+        # have the same index that we're saving now)
+        self.selected = self.activities.index(activity)
 
         # once the focused activity is changed we want to stop listening to
         # its status-changed signal. in most cases this isn't a problem but if
@@ -288,6 +306,7 @@ class Activity(GObject.GObject):
         DOWNLOADED = 2
         PARSING = 3
         PARSED = 4
+        DELETED = 5
 
     def __init__(self, app, antfile):
         GObject.GObject.__init__(self)
@@ -461,6 +480,16 @@ class Activity(GObject.GObject):
         self.setup_fit()
         self.change_status(Activity.Status.DOWNLOADED)
 
+    def delete(self):
+        self.app.queue('delete-file', self.delete_cb, self.antfile)
+
+    def delete_cb(self, result):
+        if result:
+            self.change_status(Activity.Status.DELETED)
+        else:
+            # delete failed
+            self.change_status(Activity.Status.PARSED)
+
 class ActivityRow(Gtk.ListBoxRow, Activity):
 
     # see comment about signals in Activity class definition
@@ -526,6 +555,8 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
 
         if downloading:
             self.image.set_from_icon_name('folder-download-symbolic', self.ICON_SIZE)
+            return
+        elif status == Activity.Status.DELETED:
             return
         elif status == Activity.Status.DOWNLOADED:
             self.label.set_sensitive(True)
