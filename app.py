@@ -58,7 +58,7 @@ class Correre(Gtk.Application):
                 self.garmin = None
         self.garmin.connect('status-changed', status_changed_cb)
 
-    def do(self, action, cb, *args):
+    def queue(self, action, cb, *args):
         if not self.garmin:
             self.setup_garmin()
 
@@ -79,7 +79,7 @@ class Correre(Gtk.Application):
         self.add_window(self.loading)
         self.loading.show_all()
 
-        self.do('get-file-list', self.got_file_list_cb)
+        self.queue('get-file-list', self.got_file_list_cb)
 
     def create_config(self):
         path = os.path.dirname(CONFIG_PATH)

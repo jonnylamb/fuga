@@ -450,7 +450,7 @@ class Activity(GObject.GObject):
         def progress_cb(fraction):
             self.emit('download-progress', fraction)
 
-        self.app.do('download-file', self.file_downloaded_cb,
+        self.app.queue('download-file', self.file_downloaded_cb,
             self.antfile, progress_cb)
 
         self.change_status(Activity.Status.DOWNLOADING)
