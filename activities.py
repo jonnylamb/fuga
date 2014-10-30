@@ -568,14 +568,13 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         self.label.set_markup(markup)
 
         # TODO: use some sensible icons here
-        icons = {
-            'swimming': 'weather-fog',
-            'cycling': 'media-optical-cd-audio',
-            'running': 'network-transmit-receive'
-        }
-        if self.sport in icons:
-            self.image.set_from_icon_name('{}-symbolic'.format(icons[self.sport]),
+        if self.sport == 'swimming':
+            self.image.set_from_icon_name('weather-fog-symbolic',
                 self.ICON_SIZE)
+        elif self.sport == 'cycling':
+            self.image.set_from_file('ic_directions_bike_48px.svg')
+        elif self.sport == 'running':
+            self.image.set_from_file('ic_directions_walk_48px.svg')
 
 class UploadDialog(Gtk.Dialog):
     def __init__(self, activity):
