@@ -7,6 +7,7 @@ from gi.repository import GLib, GObject
 
 import ant.fs.manager
 import ant.fs.file
+from ant.fs.command import EraseRequestCommand, EraseResponse
 
 import utils
 
@@ -267,6 +268,13 @@ class Garmin(ant.fs.manager.Application,
         # run in ui thread
         GLib.idle_add(lambda: done_cb(data))
 
+    @staticmethod
+    def delete_file(self, cb, antfile):
+        result = self.erase(antfile.index)
+
+        # run in ui thread
+        GLib.idle_add(lambda: cb(result))
+
     def queue(self, func, cb, *args):
         self.funcs.append((func, cb, args))
         if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
@@ -289,3 +297,14 @@ class Garmin(ant.fs.manager.Application,
     def disconnect(self):
         ant.fs.manager.Application.disconnect(self)
         self.change_status(Garmin.Status.DISCONNECTED)
+
+    # https://github.com/Tigge/openant/pull/3
+    def erase(self, index):
+        self._send_command(EraseRequestCommand(index))
+        response = self._get_command()
+        arg = response._get_argument("response")
+
+        if arg == EraseResponse.Response.ERASE_SUCCESSFUL:
+            return True
+        else:
+            return False

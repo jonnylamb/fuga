@@ -97,6 +97,10 @@ class FakeGarmin(GObject.GObject):
     def download_file(self, done_cb, antfile, progress_cb):
         GLib.idle_add(lambda: done_cb('foobar'))
 
+    @staticmethod
+    def delete_file(self, cb, antfile):
+        GLib.idle_add(lambda: cb(True))
+
     def queue(self, func, cb, *args):
         self.funcs.append((func, cb, args))
         if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:

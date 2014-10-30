@@ -68,6 +68,7 @@ class Correre(Gtk.Application):
         func = {
             'get-file-list': self.garmin.get_file_list,
             'download-file': self.garmin.download_file,
+            'delete-file': self.garmin.delete_file,
         }[action]
 
         self.garmin.queue(func, cb, *args)
