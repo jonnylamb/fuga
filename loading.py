@@ -11,10 +11,14 @@ STATUSES = [ 'None',
 
 class LoadingWindow(Gtk.ApplicationWindow):
 
-    def __init__(self, garmin):
+    def __init__(self, app):
         Gtk.ApplicationWindow.__init__(self)
 
-        garmin.connect('status-changed', self.status_changed_cb)
+        def changed_cb(queue, garmin):
+            if not garmin:
+                return
+            garmin.connect('status-changed', self.status_changed_cb)
+        app.queue.connect('garmin-changed', changed_cb)
 
         self.label = Gtk.Label()
         self.add(self.label)

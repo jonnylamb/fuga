@@ -469,7 +469,7 @@ class Activity(GObject.GObject):
         def progress_cb(fraction):
             self.emit('download-progress', fraction)
 
-        self.app.queue('download-file', self.file_downloaded_cb,
+        self.app.queue.download_file(self.file_downloaded_cb,
             self.antfile, progress_cb)
 
         self.change_status(Activity.Status.DOWNLOADING)
@@ -481,7 +481,7 @@ class Activity(GObject.GObject):
         self.change_status(Activity.Status.DOWNLOADED)
 
     def delete(self):
-        self.app.queue('delete-file', self.delete_cb, self.antfile)
+        self.app.queue.delete_file(self.delete_cb, self.antfile)
 
     def delete_cb(self, result):
         if result:

@@ -9,6 +9,7 @@ import ant.fs.manager
 import ant.fs.file
 from ant.fs.command import EraseRequestCommand, EraseResponse
 
+from queue import queueable
 import utils
 
 DIRECTORIES = {
@@ -215,7 +216,9 @@ class Garmin(ant.fs.manager.Application,
 
             while self.funcs:
                 f, cb, args = self.funcs.pop(0)
-                f(self, cb, *args)
+                ret = f(self, *args)
+                # run in ui thread
+                GLib.idle_add(lambda: cb(ret))
 
             # we've run out of things to do for now. set a timer so we don't
             # disconnect immediately.
@@ -240,8 +243,8 @@ class Garmin(ant.fs.manager.Application,
             self.loop.quit()
             self.loop = None
 
-    @staticmethod
-    def get_file_list(self, cb):
+    @queueable(lambda self: self.cancel_timer(True))
+    def get_file_list(self):
         directory = self.download_directory()
 
         # get a list of remote files
@@ -255,32 +258,18 @@ class Garmin(ant.fs.manager.Application,
             if subtype in files:
                 files[subtype].append(AntFile(self.device, antfile))
 
-        # run in ui thread
-        GLib.idle_add(lambda: cb(files))
+        return files
 
-    @staticmethod
-    def download_file(self, done_cb, antfile, progress_cb):
+    @queueable(lambda self: self.cancel_timer(True))
+    def download_file(self, antfile, progress_cb):
         def cb(new_progress):
             GLib.idle_add(lambda: progress_cb(new_progress))
 
-        data = self.download(antfile.index, cb)
+        return self.download(antfile.index, cb)
 
-        # run in ui thread
-        GLib.idle_add(lambda: done_cb(data))
-
-    @staticmethod
-    def delete_file(self, cb, antfile):
-        result = self.erase(antfile.index)
-
-        # run in ui thread
-        GLib.idle_add(lambda: cb(result))
-
-    def queue(self, func, cb, *args):
-        self.funcs.append((func, cb, args))
-        if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
-            self.start()
-        elif self.timeout_source:
-            self.cancel_timer(True)
+    @queueable(lambda self: self.cancel_timer(True))
+    def delete_file(self, antfile):
+        return self.erase(antfile.index)
 
     def shutdown(self):
         self.funcs = []

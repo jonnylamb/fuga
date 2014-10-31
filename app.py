@@ -10,6 +10,7 @@ from activities import Window
 from loading import LoadingWindow
 from fakegarmin import FakeGarmin
 from garmin import Garmin
+from queue import GarminQueue
 
 CONFIG_PATH = os.path.join(GLib.get_user_config_dir(), 'correre', 'correre.ini')
 
@@ -24,9 +25,21 @@ class Correre(Gtk.Application):
 
         self.config = self.create_config()
 
-        self.garmin = None
-
         style.setup()
+
+        if 'FAKE_GARMIN' in os.environ:
+            cls = FakeGarmin
+        else:
+            cls = Garmin
+
+        self.queue = GarminQueue(cls)
+
+    def activate_cb(self, data=None):
+        self.loading = LoadingWindow(self)
+        self.add_window(self.loading)
+        self.loading.show_all()
+
+        self.queue.get_file_list(self.got_file_list_cb)
 
     def got_file_list_cb(self, ant_files):
         self.loading.destroy()
@@ -44,43 +57,7 @@ class Correre(Gtk.Application):
         window.connect('destroy', self.window_destroy_cb)
 
     def window_destroy_cb(self, window):
-        if self.garmin:
-            self.garmin.shutdown()
-
-    def setup_garmin(self):
-        if 'FAKE_GARMIN' in os.environ:
-            self.garmin = FakeGarmin()
-        else:
-            self.garmin = Garmin()
-
-        def status_changed_cb(garmin, status):
-            if status == Garmin.Status.DISCONNECTED:
-                self.garmin = None
-        self.garmin.connect('status-changed', status_changed_cb)
-
-    def queue(self, action, cb, *args):
-        if not self.garmin:
-            self.setup_garmin()
-
-        # I don't really like this but it's better than referring to a non-
-        # existent self.garmin, or referring to garmin at all elsewhere.
-        # perhaps we should just create methods on this class for each action?
-        func = {
-            'get-file-list': self.garmin.get_file_list,
-            'download-file': self.garmin.download_file,
-            'delete-file': self.garmin.delete_file,
-        }[action]
-
-        self.garmin.queue(func, cb, *args)
-
-    def activate_cb(self, data=None):
-        self.setup_garmin()
-
-        self.loading = LoadingWindow(self.garmin)
-        self.add_window(self.loading)
-        self.loading.show_all()
-
-        self.queue('get-file-list', self.got_file_list_cb)
+        self.queue.shutdown()
 
     def create_config(self):
         path = os.path.dirname(CONFIG_PATH)

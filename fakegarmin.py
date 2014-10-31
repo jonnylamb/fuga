@@ -7,6 +7,7 @@ from gi.repository import GLib, GObject
 import ant.fs.file
 
 from garmin import Garmin, FILETYPES, AntFile
+from queue import queueable
 import utils
 
 class FakeAntFile(object):
@@ -65,13 +66,15 @@ class FakeGarmin(GObject.GObject):
     def worker_cb(self):
         while self.funcs:
             f, cb, args = self.funcs.pop(0)
-            f(self, cb, *args)
+            ret = f(self, *args)
+            # run in ui thread
+            GLib.idle_add(lambda: cb(ret))
 
         self.loop.quit()
         self.change_status(Garmin.Status.DISCONNECTED)
 
-    @staticmethod
-    def get_file_list(self, cb):
+    @queueable()
+    def get_file_list(self):
         base_path = os.environ.get('FAKE_GARMIN_BASE_PATH', None)
         if not base_path:
             base_path = os.path.join(GLib.get_user_config_dir(),
@@ -91,20 +94,15 @@ class FakeGarmin(GObject.GObject):
                 files[ant.fs.file.File.Identifier.ACTIVITY].append(
                     FakeAntFile(base_path, a))
 
-        GLib.idle_add(lambda: cb(files))
+        return files
 
-    @staticmethod
-    def download_file(self, done_cb, antfile, progress_cb):
-        GLib.idle_add(lambda: done_cb('foobar'))
+    @queueable()
+    def download_file(self, antfile, progress_cb):
+        return foobar
 
-    @staticmethod
-    def delete_file(self, cb, antfile):
-        GLib.idle_add(lambda: cb(True))
-
-    def queue(self, func, cb, *args):
-        self.funcs.append((func, cb, args))
-        if self.status in [Garmin.Status.NONE, Garmin.Status.DISCONNECTED]:
-            self.start()
+    @queueable()
+    def delete_file(self, antfile):
+        return True
 
     def shutdown(self):
         self.funcs = []
