@@ -49,7 +49,7 @@ class Correre(Gtk.Application):
         window = Window(self)
 
         for activity in activities:
-            window.add_activity(activity)
+            window.activities.add_activity(activity)
 
         self.add_window(window)
         window.show_all()

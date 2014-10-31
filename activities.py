@@ -19,51 +19,23 @@ class Window(Gtk.ApplicationWindow):
 
         self.app = app
 
-        self.activities = []
-
         self.set_default_size(1000, 700)
         self.set_title('Correre')
 
-        #  titlebar
-        titlebar_box = Gtk.Box()
-        self.set_titlebar(titlebar_box)
+        # titlebar
+        self.header = ActivitiesHeader()
+        self.set_titlebar(self.header)
 
-        # left toolbar
-        self.left_toolbar = Gtk.HeaderBar()
-        self.left_toolbar.set_title('All activities')
-        self.left_toolbar.get_style_context().add_class(Gtk.STYLE_CLASS_TITLEBAR)
-        self.left_toolbar.get_style_context().add_class('contacts-left-header-bar')
-        titlebar_box.pack_start(self.left_toolbar, False, False, 0)
+        self.activities = Activities(app)
+        self.activities.set_header(self.header)
+        self.add(self.activities)
 
-        # select button
-        self.select_button = Gtk.ToggleButton()
-        self.select_button.set_focus_on_click(False)
-        self.select_button.set_sensitive(False)
-        image = Gtk.Image(icon_name='object-select-symbolic', icon_size=Gtk.IconSize.MENU)
-        self.select_button.set_image(image)
-        self.left_toolbar.pack_end(self.select_button)
+class Activities(Gtk.Bin):
+    def __init__(self, app):
+        Gtk.Bin.__init__(self)
 
-        self.select_button.connect('toggled', self.select_toggled_cb)
-        self.num_selected = 0
-
-        # right toolbar
-        self.right_toolbar = Gtk.HeaderBar()
-        self.right_toolbar.set_show_close_button(True)
-        self.right_toolbar.get_style_context().add_class(Gtk.STYLE_CLASS_TITLEBAR)
-        self.right_toolbar.get_style_context().add_class('contacts-right-header-bar')
-        titlebar_box.pack_start(self.right_toolbar, True, True, 0)
-
-        # delete button
-        self.delete_button = Gtk.Button(label='Delete')
-        self.delete_button.get_style_context().add_class('destructive-action')
-        self.delete_button.set_no_show_all(True)
-        self.delete_button.connect('clicked', self.delete_clicked_cb)
-        self.right_toolbar.pack_end(self.delete_button)
-
-        # keep all menu buttons the same height
-        vsize_group = Gtk.SizeGroup(Gtk.SizeGroupMode.VERTICAL)
-        vsize_group.add_widget(self.select_button)
-        vsize_group.add_widget(self.delete_button)
+        self.app = app
+        self.activities = []
 
         # content box
         self.hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0)
@@ -76,13 +48,21 @@ class Window(Gtk.ApplicationWindow):
 
         self.pane.activity_list.connect('row-selected', self.row_selected_cb)
 
-        # keep left pane and toolbar the same width
-        hsize_group = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
-        hsize_group.add_widget(self.left_toolbar)
-        hsize_group.add_widget(self.pane)
-
         self.content = NoActivities()
         self.hbox.pack_start(self.content, True, True, 0)
+
+    def set_header(self, header):
+        # ugly but for convenience
+        self.header = header
+
+        self.num_selected = 0
+        self.header.select_button.connect('toggled', self.select_toggled_cb)
+        self.header.delete_button.connect('clicked', self.delete_clicked_cb)
+
+        # keep left pane and toolbar the same width
+        hsize_group = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        hsize_group.add_widget(self.header.left_toolbar)
+        hsize_group.add_widget(self.pane)
 
     def add_activity(self, antfile):
         row = ActivityRow(self, self.app, antfile)
@@ -96,7 +76,7 @@ class Window(Gtk.ApplicationWindow):
         # showing actual details about the activity
         #self.parse_all()
 
-        self.select_button.set_sensitive(True)
+        self.header.select_button.set_sensitive(True)
 
     def parse_all(self, unused=None):
         def idle():
@@ -118,31 +98,31 @@ class Window(Gtk.ApplicationWindow):
             self.num_selected -= 1
 
         if self.num_selected > 0:
-            self.left_toolbar.set_title('{} selected'.format(self.num_selected))
+            self.header.left_toolbar.set_title('{} selected'.format(self.num_selected))
             self.pane.delete_button.set_sensitive(True)
         else:
-            self.left_toolbar.set_title('Select')
+            self.header.left_toolbar.set_title('Select')
             self.pane.delete_button.set_sensitive(False)
 
     def select_toggled_cb(self, toggle_button):
         if toggle_button.get_active():
-            self.left_toolbar.get_style_context().add_class('selection-mode')
-            self.right_toolbar.get_style_context().add_class('selection-mode')
+            self.header.left_toolbar.get_style_context().add_class('selection-mode')
+            self.header.right_toolbar.get_style_context().add_class('selection-mode')
 
             for activity in self.activities:
                 activity.selector_button.show()
                 activity.selector_button.set_hexpand(not activity.spinner.get_visible())
 
-            self.left_toolbar.set_title('Select')
+            self.header.left_toolbar.set_title('Select')
 
-            self.delete_button.hide()
+            self.header.delete_button.hide()
             self.pane.revealer.set_reveal_child(True)
 
-            self.right_toolbar.set_show_close_button(False)
+            self.header.right_toolbar.set_show_close_button(False)
 
         else:
-            self.left_toolbar.get_style_context().remove_class('selection-mode')
-            self.right_toolbar.get_style_context().remove_class('selection-mode')
+            self.header.left_toolbar.get_style_context().remove_class('selection-mode')
+            self.header.right_toolbar.get_style_context().remove_class('selection-mode')
 
             for activity in self.activities:
                 activity.selector_button.hide()
@@ -150,16 +130,16 @@ class Window(Gtk.ApplicationWindow):
 
             self.num_selected = 0
 
-            self.left_toolbar.set_title('All activities')
+            self.header.left_toolbar.set_title('All activities')
 
             activity = self.pane.activity_list.get_selected_row()
-            self.delete_button.set_visible(
+            self.header.delete_button.set_visible(
                 activity.status == Activity.Status.NONE or
                 activity.status == Activity.Status.PARSED)
 
             self.pane.revealer.set_reveal_child(False)
 
-            self.right_toolbar.set_show_close_button(True)
+            self.header.right_toolbar.set_show_close_button(True)
 
     def delete_clicked_cb(self, button):
         activity = self.pane.activity_list.get_selected_row()
@@ -210,16 +190,16 @@ class Window(Gtk.ApplicationWindow):
             self.pane.activity_list.remove(activity)
             return
 
-        self.delete_button.set_visible(
+        self.header.delete_button.set_visible(
             activity.status == Activity.Status.NONE or
             (activity.status == Activity.Status.PARSED and \
-            not self.select_button.get_active()))
+            not self.header.select_button.get_active()))
 
         self.hbox.pack_start(self.content, True, True, 0)
         self.content.show_all()
 
         title = activity.date.strftime('%A %d %B at %H:%M')
-        self.right_toolbar.set_title(title)
+        self.header.right_toolbar.set_title(title)
 
         # save the index of the current activity so if we delete this
         # activity, we can jump to the next activity in the list (which will
@@ -238,6 +218,43 @@ class Window(Gtk.ApplicationWindow):
         self.content.connect('destroy', content_destroy_cb, activity)
 
         activity.connect('status-changed', self.activity_status_changed_cb)
+
+class ActivitiesHeader(Gtk.Box):
+    def __init__(self):
+        Gtk.Box.__init__(self)
+
+        # left toolbar
+        self.left_toolbar = Gtk.HeaderBar()
+        self.left_toolbar.set_title('All activities')
+        self.left_toolbar.get_style_context().add_class(Gtk.STYLE_CLASS_TITLEBAR)
+        self.left_toolbar.get_style_context().add_class('contacts-left-header-bar')
+        self.pack_start(self.left_toolbar, False, False, 0)
+
+        # select button
+        self.select_button = Gtk.ToggleButton()
+        self.select_button.set_focus_on_click(False)
+        self.select_button.set_sensitive(False)
+        image = Gtk.Image(icon_name='object-select-symbolic', icon_size=Gtk.IconSize.MENU)
+        self.select_button.set_image(image)
+        self.left_toolbar.pack_end(self.select_button)
+
+        # right toolbar
+        self.right_toolbar = Gtk.HeaderBar()
+        self.right_toolbar.set_show_close_button(True)
+        self.right_toolbar.get_style_context().add_class(Gtk.STYLE_CLASS_TITLEBAR)
+        self.right_toolbar.get_style_context().add_class('contacts-right-header-bar')
+        self.pack_start(self.right_toolbar, True, True, 0)
+
+        # delete button
+        self.delete_button = Gtk.Button(label='Delete')
+        self.delete_button.get_style_context().add_class('destructive-action')
+        self.delete_button.set_no_show_all(True)
+        self.right_toolbar.pack_end(self.delete_button)
+
+        # keep all menu buttons the same height
+        vsize_group = Gtk.SizeGroup(Gtk.SizeGroupMode.VERTICAL)
+        vsize_group.add_widget(self.select_button)
+        vsize_group.add_widget(self.delete_button)
 
 class ListPane(Gtk.Frame):
     def __init__(self):
