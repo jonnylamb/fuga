@@ -11,23 +11,6 @@ from gi.repository import Gtk, GLib, GObject, Gio, Pango, Gdk, GtkChamplain, Cha
 import fit
 import strava
 
-class Window(Gtk.ApplicationWindow):
-    def __init__(self, app):
-        Gtk.ApplicationWindow.__init__(self)
-
-        self.app = app
-
-        self.set_default_size(1000, 700)
-        self.set_title('Correre')
-
-        # titlebar
-        self.header = ActivitiesHeader()
-        self.set_titlebar(self.header)
-
-        self.activities = Activities(app)
-        self.activities.set_header(self.header)
-        self.add(self.activities)
-
 class Activities(Gtk.Bin):
     def __init__(self, app):
         Gtk.Bin.__init__(self)

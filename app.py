@@ -6,7 +6,7 @@ from gi.repository import Gtk, GLib, Gio
 import ant.fs.file
 
 import style
-from activities import Window
+from activities import Activities, ActivitiesHeader
 from loading import LoadingWindow
 from fakegarmin import FakeGarmin
 from garmin import Garmin
@@ -75,3 +75,20 @@ class Correre(Gtk.Application):
         config.save = save_config
 
         return config
+
+class Window(Gtk.ApplicationWindow):
+    def __init__(self, app):
+        Gtk.ApplicationWindow.__init__(self)
+
+        self.app = app
+
+        self.set_default_size(1000, 700)
+        self.set_title('Correre')
+
+        # titlebar
+        self.header = ActivitiesHeader()
+        self.set_titlebar(self.header)
+
+        self.activities = Activities(app)
+        self.activities.set_header(self.header)
+        self.add(self.activities)
