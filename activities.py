@@ -8,8 +8,6 @@ from gi.repository import GtkClutter, Clutter
 GtkClutter.init([])
 from gi.repository import Gtk, GLib, GObject, Gio, Pango, Gdk, GtkChamplain, Champlain, WebKit
 
-import fitparse
-
 import fit
 import strava
 
