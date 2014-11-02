@@ -16,7 +16,6 @@ class Activities(Gtk.Bin):
         Gtk.Bin.__init__(self)
 
         self.app = app
-        self.activities = []
 
         # content box
         self.hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0)
@@ -49,9 +48,6 @@ class Activities(Gtk.Bin):
         row = ActivityRow(self, self.app, antfile)
         row.selector_button.connect('toggled', self.activity_toggled_cb)
         self.pane.activity_list.prepend(row)
-        self.activities.append(row)
-
-        self.activities.sort(Activity.sort_func)
 
         # not at all necessary to enable unless the listview row starts
         # showing actual details about the activity
@@ -61,7 +57,7 @@ class Activities(Gtk.Bin):
 
     def parse_all(self, unused=None):
         def idle():
-            for activity in self.activities:
+            for activity in self.pane.activity_list.get_children():
                 if not activity.downloaded:
                     continue
 
@@ -90,7 +86,7 @@ class Activities(Gtk.Bin):
             self.header.left_toolbar.get_style_context().add_class('selection-mode')
             self.header.right_toolbar.get_style_context().add_class('selection-mode')
 
-            for activity in self.activities:
+            for activity in self.pane.activity_list.get_children():
                 activity.selector_button.show()
                 activity.selector_button.set_hexpand(not activity.spinner.get_visible())
 
@@ -105,7 +101,7 @@ class Activities(Gtk.Bin):
             self.header.left_toolbar.get_style_context().remove_class('selection-mode')
             self.header.right_toolbar.get_style_context().remove_class('selection-mode')
 
-            for activity in self.activities:
+            for activity in self.pane.activity_list.get_children():
                 activity.selector_button.hide()
                 activity.selector_button.set_active(False)
 
@@ -130,9 +126,10 @@ class Activities(Gtk.Bin):
         if activity:
             self.reset_content(activity)
         else:
-            activity = self.activities[self.selected]
-            self.pane.activity_list.select_row(activity)
-            activity.changed()
+            activity = self.pane.activity_list.get_row_at_index(self.selected)
+            if activity:
+                self.pane.activity_list.select_row(activity)
+                activity.changed()
 
     def activity_status_changed_cb(self, activity, status):
         self.reset_content(activity)
@@ -167,7 +164,6 @@ class Activities(Gtk.Bin):
 
         # just deleted
         elif activity.status == Activity.Status.DELETED:
-            self.activities.remove(activity)
             self.pane.activity_list.remove(activity)
             return
 
@@ -185,7 +181,7 @@ class Activities(Gtk.Bin):
         # save the index of the current activity so if we delete this
         # activity, we can jump to the next activity in the list (which will
         # have the same index that we're saving now)
-        self.selected = self.activities.index(activity)
+        self.selected = activity.get_index()
 
         # once the focused activity is changed we want to stop listening to
         # its status-changed signal. in most cases this isn't a problem but if
