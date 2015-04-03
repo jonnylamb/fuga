@@ -13,10 +13,6 @@ class LoadingHeader(Gtk.HeaderBar):
 
         self.set_title('Loading')
 
-        self.prev_button = Gtk.Button('Previous')
-        self.prev_button.set_sensitive(False)
-        self.pack_start(self.prev_button)
-
         self.next_button = Gtk.Button('Next')
         self.next_button.set_sensitive(False)
         self.next_button.get_style_context().add_class('suggested-action')
