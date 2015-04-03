@@ -55,6 +55,10 @@ class Activities(Gtk.Bin):
 
         self.header.select_button.set_sensitive(True)
 
+    def select_first(self):
+        activity = self.pane.activity_list.get_row_at_index(0)
+        self.pane.activity_list.select_row(activity)
+
     def parse_all(self, unused=None):
         def idle():
             for activity in self.pane.activity_list.get_children():
