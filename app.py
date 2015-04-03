@@ -7,7 +7,8 @@ import ant.fs.file
 
 import style
 from activities import Activities, ActivitiesHeader
-from loading import LoadingWindow
+from loading import Loading, LoadingHeader
+from welcome import Welcome, WelcomeHeader
 from fakegarmin import FakeGarmin
 from garmin import Garmin
 from queue import GarminQueue
@@ -35,22 +36,7 @@ class Correre(Gtk.Application):
         self.queue = GarminQueue(cls)
 
     def activate_cb(self, data=None):
-        self.loading = LoadingWindow(self)
-        self.add_window(self.loading)
-        self.loading.show_all()
-
-        self.queue.get_file_list(self.got_file_list_cb)
-
-    def got_file_list_cb(self, ant_files):
-        self.loading.destroy()
-        self.loading = None
-
-        activities = ant_files[ant.fs.file.File.Identifier.ACTIVITY]
         window = Window(self)
-
-        for activity in activities:
-            window.activities.add_activity(activity)
-
         self.add_window(window)
         window.show_all()
 
@@ -92,10 +78,86 @@ class Window(Gtk.ApplicationWindow):
         self.set_default_size(1000, 700)
         self.set_title('Correre')
 
-        # titlebar
-        self.header = ActivitiesHeader()
-        self.set_titlebar(self.header)
+        self.stack = Gtk.Stack()
+        self.add(self.stack)
 
-        self.activities = Activities(app)
-        self.activities.set_header(self.header)
-        self.add(self.activities)
+        self.pages = {'welcome': Welcome(app),
+                      'loading': Loading(app),
+                      'activities': Activities(app)}
+
+        for name, page in self.pages.items():
+            self.stack.add_named(page, name)
+
+        self.show_welcome()
+
+    # welcome page
+
+    def show_welcome(self):
+        page = self.pages['welcome']
+        page.show_all()
+        self.stack.set_visible_child_full('welcome',
+            Gtk.StackTransitionType.SLIDE_RIGHT)
+
+        header = WelcomeHeader()
+        header.show_all()
+        self.set_titlebar(header)
+
+        header.close_button.connect('clicked', self.welcome_close_clicked_cb)
+        header.next_button.connect('clicked', self.welcome_next_clicked_cb)
+
+    def welcome_close_clicked_cb(self, button):
+        self.destroy()
+
+    def welcome_next_clicked_cb(self, button):
+        self.show_loading()
+        self.app.queue.get_file_list(self.got_file_list_cb)
+
+    # loading page
+
+    def show_loading(self):
+        page = self.pages['loading']
+        page.show_all()
+        self.stack.set_visible_child_full('loading',
+            Gtk.StackTransitionType.SLIDE_LEFT)
+
+        header = LoadingHeader()
+        header.show_all()
+        self.set_titlebar(header)
+
+        header.prev_button.connect('clicked', self.loading_prev_clicked_cb)
+
+    def loading_prev_clicked_cb(self, button):
+        self.show_welcome()
+
+    def got_file_list_cb(self, ant_files):
+        self.show_activities()
+
+        page = self.pages['activities']
+        for activity in ant_files[ant.fs.file.File.Identifier.ACTIVITY]:
+            page.add_activity(activity)
+        page.select_first()
+        page.show_all()
+
+    # activities page
+
+    def show_activities(self):
+        page = self.pages['activities']
+
+        header = ActivitiesHeader()
+        page.set_header(header)
+        header.show_all()
+        self.set_titlebar(header)
+
+        page.show_all()
+        self.stack.set_visible_child_full('activities',
+            Gtk.StackTransitionType.SLIDE_LEFT)
+
+        header.back_button.connect('clicked', self.activities_back_clicked_cb)
+
+    def activities_back_clicked_cb(self, button):
+        self.show_welcome()
+
+        # destroy activities, for good luck
+        self.stack.remove(self.pages['activities'])
+        self.pages['activities'] = Activities(self.app)
+        self.stack.add_named(self.pages['activities'], 'activities')

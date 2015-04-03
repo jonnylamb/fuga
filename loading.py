@@ -7,12 +7,24 @@ STATUSES = [ 'None',
              'Connected',
              'Disconnected']
 
-# TODO: everything
+class LoadingHeader(Gtk.HeaderBar):
+    def __init__(self):
+        Gtk.HeaderBar.__init__(self)
 
-class LoadingWindow(Gtk.ApplicationWindow):
+        self.set_title('Loading')
 
+        self.prev_button = Gtk.Button('Previous')
+        self.prev_button.set_sensitive(False)
+        self.pack_start(self.prev_button)
+
+        self.next_button = Gtk.Button('Next')
+        self.next_button.set_sensitive(False)
+        self.next_button.get_style_context().add_class('suggested-action')
+        self.pack_end(self.next_button)
+
+class Loading(Gtk.Bin):
     def __init__(self, app):
-        Gtk.ApplicationWindow.__init__(self)
+        Gtk.Bin.__init__(self)
 
         def changed_cb(queue, garmin):
             if not garmin:

@@ -211,6 +211,11 @@ class ActivitiesHeader(Gtk.Box):
         self.left_toolbar.get_style_context().add_class('contacts-left-header-bar')
         self.pack_start(self.left_toolbar, False, False, 0)
 
+        # back button
+        self.back_button = Gtk.Button.new_from_icon_name('go-previous-symbolic',
+            Gtk.IconSize.MENU)
+        self.left_toolbar.pack_start(self.back_button)
+
         # select button
         self.select_button = Gtk.ToggleButton()
         self.select_button.set_focus_on_click(False)
