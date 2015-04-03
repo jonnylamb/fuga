@@ -1,7 +1,7 @@
 import os
 from ConfigParser import ConfigParser
 
-from gi.repository import Gtk, GLib, Gio
+from gi.repository import Gtk, GLib, Gio, Gdk
 
 import ant.fs.file
 
@@ -55,9 +55,16 @@ class Correre(Gtk.Application):
         window.show_all()
 
         window.connect('destroy', self.window_destroy_cb)
+        window.connect('key-press-event', self.key_press_event_cb)
 
     def window_destroy_cb(self, window):
         self.queue.shutdown()
+
+    def key_press_event_cb(self, window, event):
+        if (event.state & Gdk.ModifierType.CONTROL_MASK \
+            and event.keyval == Gdk.KEY_q) or \
+           event.keyval == Gdk.KEY_Escape:
+            window.destroy()
 
     def create_config(self):
         path = os.path.dirname(CONFIG_PATH)
