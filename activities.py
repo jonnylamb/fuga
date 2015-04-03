@@ -539,7 +539,6 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
 
     def upload_to_strava(self):
         dialog = UploadDialog(self)
-        dialog.set_transient_for(self.window)
         dialog.show_all()
 
     def status_changed_cb(self, activity, status):
