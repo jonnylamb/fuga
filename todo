@@ -13,6 +13,8 @@ O work out what to do with icons
 
 * show correct icon in main activity window
 
+* does deleting the last item break things? probably.
+
 misc
 ====
 
@@ -119,7 +121,7 @@ tracebacks
       File "/home/jonny/src/run/strava.py", line 93, in read_response
         self.activity_id = int(data['error'].split()[-1])
 
-* boh
+* on authentication
 
     Traceback (most recent call last):
       File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
@@ -184,41 +186,3 @@ tracebacks
       File "/home/jonny/src/openant/ant/base/driver.py", line 248, in find_driver
         raise DriverNotFound
     ant.base.driver.DriverNotFound
-
-* not sure
-
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/activities.py", line 567, in status_changed_cb
-        self.date_str = self.date.strftime('%A %d %b %Y')
-      File "/home/jonny/src/run/activities.py", line 412, in date
-        start = self.get_config('start_time')
-      File "/home/jonny/src/run/activities.py", line 375, in get_config
-        return self.app.config.get(self.filename, key)
-      File "/usr/lib/python2.7/ConfigParser.py", line 623, in get
-        return self._interpolate(section, option, value, d)
-      File "/usr/lib/python2.7/ConfigParser.py", line 663, in _interpolate
-        if value and "%(" in value:
-    TypeError: argument of type 'datetime.datetime' is not iterable
-
-* authentication
-
-    Traceback (most recent call last):
-      File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
-        self.run()
-      File "/usr/lib/python2.7/threading.py", line 763, in run
-        self.__target(*self.__args, **self.__kwargs)
-      File "/home/jonny/src/run/garmin.py", line 284, in start
-        ant.fs.manager.Application.start(self)
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 202, in start
-        self._main()
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 131, in _main
-        if self.on_authentication(beacon):
-      File "/home/jonny/src/run/garmin.py", line 192, in on_authentication
-        serial, name = self.authentication_serial()
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 348, in authentication_serial
-        response = self._get_command()
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 171, in _get_command
-        c = self._queue.get(True, timeout)
-      File "/usr/lib/python2.7/Queue.py", line 176, in get
-        raise Empty
-    Empty
