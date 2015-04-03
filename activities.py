@@ -349,8 +349,9 @@ class Activity(GObject.GObject):
                 self.set_config('elapsed_time',
                     self.fit.get_elapsed_time(triplet=False))
                 # string
+                start_time = self.fit.get_start_time()
                 self.set_config('start_time',
-                    self.fit.get_start_time())
+                    start_time.strftime('%Y-%m-%d %H:%M:%S'))
 
     # signals: because GObject doesn't support multiple inheritance, every
     # signal here will have to be copied into any subclass manually
