@@ -1,0 +1,228 @@
+ui
+==
+
+* display activity timings in the row?
+
+* use GtkBuilder
+
+O move the strava uploading dialog into the main window as a infobar
+
+O work out what to do with icons
+
+* implement multi-delete
+
+O make icon in content view depend on sport
+
+* save downloaded stuff to recent files
+
+misc
+====
+
+O work out name: correre or corri?
+
+O make sure files are being saved in utc
+
+O save config file as 600
+
+garmin connectivity
+===================
+
+* add a timeout when connecting
+
+* ensure garmin connected to on a reconnection is the same one!
+
+design
+======
+
+O rename activities.py to ui/activities.py and move Activity to activity.py
+
+* make queuing not really ugly
+
+tracebacks
+==========
+
+* device in use
+
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/activities.py", line 737, in download_clicked_cb
+        self.activity.download()
+      File "/home/jonny/src/run/activities.py", line 472, in download
+        self.app.queue.download_file(self.file_downloaded_cb,
+      File "/home/jonny/src/run/app.py", line 31, in __getattr__
+        self.emit('garmin-changed', self.cls())
+      File "/home/jonny/src/run/garmin.py", line 170, in __init__
+        ant.fs.manager.Application.__init__(self)
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 82, in __init__
+        self._node = Node()
+      File "/home/jonny/src/openant/ant/easy/node.py", line 48, in __init__
+        self.ant = Ant()
+      File "/home/jonny/src/openant/ant/base/ant.py", line 59, in __init__
+        self._driver.open()
+      File "/home/jonny/src/openant/ant/base/driver.py", line 182, in open
+        dev.set_configuration()
+      File "/home/jonny/src/pyusb/usb/core.py", line 559, in set_configuration
+        self._ctx.managed_set_configuration(self, configuration)
+      File "/home/jonny/src/pyusb/usb/core.py", line 92, in managed_set_configuration
+        self.backend.set_configuration(self.handle, cfg.bConfigurationValue)
+      File "/home/jonny/src/pyusb/usb/backend/libusb1.py", line 724, in set_configuration
+        _check(self.lib.libusb_set_configuration(dev_handle.handle, config_value))
+      File "/home/jonny/src/pyusb/usb/backend/libusb1.py", line 554, in _check
+        raise USBError(_str_error[ret], ret, _libusb_errno[ret])
+    usb.core.USBError: [Errno 16] Resource busy
+
+* strava upload failing
+
+    {"id":238653776,"external_id":"2014-10-31_22-00-12_4_217.fit","error":null,"status":"Your activity is still being processed.
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/utils.py", line 25, in read_stream_cb
+        cb(data)
+      File "/home/jonny/src/run/strava.py", line 80, in cb
+        self.read_response(json.loads(data))
+      File "/usr/lib/python2.7/json/__init__.py", line 338, in loads
+        return _default_decoder.decode(s)
+      File "/usr/lib/python2.7/json/decoder.py", line 366, in decode
+        obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+      File "/usr/lib/python2.7/json/decoder.py", line 382, in raw_decode
+        obj, end = self.scan_once(s, idx)
+    ValueError: Unterminated string starting at: line 1 column 85 (char 84)
+
+* handle no ant usb stick:
+
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/app.py", line 77, in activate_cb
+        self.setup_garmin()
+      File "/home/jonny/src/run/app.py", line 54, in setup_garmin
+        self.garmin = Garmin()
+      File "/home/jonny/src/run/garmin.py", line 159, in __init__
+        ant.fs.manager.Application.__init__(self)
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 82, in __init__
+        self._node = Node()
+      File "/home/jonny/src/openant/ant/easy/node.py", line 48, in __init__
+        self.ant = Ant()
+      File "/home/jonny/src/openant/ant/base/ant.py", line 46, in __init__
+        self._driver = find_driver()
+      File "/home/jonny/src/openant/ant/base/driver.py", line 248, in find_driver
+        raise DriverNotFound
+    ant.base.driver.DriverNotFound
+
+* unselecting select when no activities. there probs shouldn't be the select button sensitive when there aren't any activities.
+
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/activities.py", line 118, in select_toggled_cb
+        activity.status == Activity.Status.NONE or
+    AttributeError: 'NoneType' object has no attribute 'status'
+
+* duplicate strava upload
+
+    {"id":244886565,"external_id":"2014-11-07_23-46-58_4_218.fit","error":"2014-11-07_23-46-58_4_218.fit duplicate of an uploading activity (244886541)","status":"There was an error processing your activity.","activity_id":null}
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/utils.py", line 25, in read_stream_cb
+        cb(data)
+      File "/home/jonny/src/run/strava.py", line 80, in cb
+        self.read_response(json.loads(data))
+      File "/home/jonny/src/run/strava.py", line 93, in read_response
+        self.activity_id = int(data['error'].split()[-1])
+
+* boh
+
+    Traceback (most recent call last):
+      File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
+        self.run()
+      File "/usr/lib/python2.7/threading.py", line 763, in run
+        self.__target(*self.__args, **self.__kwargs)
+      File "/home/jonny/src/run/garmin.py", line 284, in start
+        ant.fs.manager.Application.start(self)
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 202, in start
+        self._main()
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 131, in _main
+        if self.on_authentication(beacon):
+      File "/home/jonny/src/run/garmin.py", line 199, in on_authentication
+        self.authentication_passkey(device.passkey)
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 356, in authentication_passkey
+        response = self._get_command()
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 171, in _get_command
+        c = self._queue.get(True, timeout)
+      File "/usr/lib/python2.7/Queue.py", line 176, in get
+        raise Empty
+    Empty
+
+* uploading to strava timing out
+
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/strava.py", line 75, in sent_cb
+        stream = session.send_finish(result)
+    GLib.Error: g-io-error-quark: I/O sul socket scaduto (24)
+
+* bad download
+
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/garmin.py", line 221, in <lambda>
+        GLib.idle_add(lambda: cb(ret))
+      File "/home/jonny/src/run/activities.py", line 483, in file_downloaded_cb
+        self.setup_fit()
+      File "/home/jonny/src/run/activities.py", line 327, in setup_fit
+        self.fit = fit.Fit(self.full_path)
+      File "/home/jonny/src/run/fit.py", line 24, in __init__
+        data_processor=fitparse.StandardUnitsDataProcessor())
+      File "/home/jonny/src/python-fitparse/fitparse/base.py", line 56, in __init__
+        self._parse_file_header()
+      File "/home/jonny/src/python-fitparse/fitparse/base.py", line 97, in _parse_file_header
+        raise FitParseError("Invalid .FIT File Header")
+    fitparse.base.FitParseError: Invalid .FIT File Header
+
+* no thing plugged in:
+
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/app.py", line 106, in welcome_next_clicked_cb
+        self.app.queue.get_file_list(self.got_file_list_cb)
+      File "/home/jonny/src/run/queue.py", line 38, in __getattr__
+        self.emit('garmin-changed', self.cls())
+      File "/home/jonny/src/run/garmin.py", line 160, in __init__
+        ant.fs.manager.Application.__init__(self)
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 82, in __init__
+        self._node = Node()
+      File "/home/jonny/src/openant/ant/easy/node.py", line 48, in __init__
+        self.ant = Ant()
+      File "/home/jonny/src/openant/ant/base/ant.py", line 46, in __init__
+        self._driver = find_driver()
+      File "/home/jonny/src/openant/ant/base/driver.py", line 248, in find_driver
+        raise DriverNotFound
+    ant.base.driver.DriverNotFound
+
+* not sure
+
+    Traceback (most recent call last):
+      File "/home/jonny/src/run/activities.py", line 567, in status_changed_cb
+        self.date_str = self.date.strftime('%A %d %b %Y')
+      File "/home/jonny/src/run/activities.py", line 412, in date
+        start = self.get_config('start_time')
+      File "/home/jonny/src/run/activities.py", line 375, in get_config
+        return self.app.config.get(self.filename, key)
+      File "/usr/lib/python2.7/ConfigParser.py", line 623, in get
+        return self._interpolate(section, option, value, d)
+      File "/usr/lib/python2.7/ConfigParser.py", line 663, in _interpolate
+        if value and "%(" in value:
+    TypeError: argument of type 'datetime.datetime' is not iterable
+
+* authentication
+
+    Traceback (most recent call last):
+      File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
+        self.run()
+      File "/usr/lib/python2.7/threading.py", line 763, in run
+        self.__target(*self.__args, **self.__kwargs)
+      File "/home/jonny/src/run/garmin.py", line 284, in start
+        ant.fs.manager.Application.start(self)
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 202, in start
+        self._main()
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 131, in _main
+        if self.on_authentication(beacon):
+      File "/home/jonny/src/run/garmin.py", line 192, in on_authentication
+        serial, name = self.authentication_serial()
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 348, in authentication_serial
+        response = self._get_command()
+      File "/home/jonny/src/openant/ant/fs/manager.py", line 171, in _get_command
+        c = self._queue.get(True, timeout)
+      File "/usr/lib/python2.7/Queue.py", line 176, in get
+        raise Empty
+    Empty
