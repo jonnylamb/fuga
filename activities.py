@@ -560,6 +560,9 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         markup = '{}\n<small>{}</small>'.format(self.date_str, self.time_str)
         self.label.set_markup(markup)
 
+        if not self.downloaded:
+            return
+
         # TODO: use some sensible icons here
         if self.sport == 'swimming':
             self.image.set_from_icon_name('weather-fog-symbolic',
