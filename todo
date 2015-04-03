@@ -11,8 +11,6 @@ O work out what to do with icons
 
 * implement multi-delete
 
-O make icon in content view depend on sport
-
 * save downloaded stuff to recent files
 
 misc
@@ -168,7 +166,7 @@ tracebacks
         raise FitParseError("Invalid .FIT File Header")
     fitparse.base.FitParseError: Invalid .FIT File Header
 
-* no thing plugged in:
+* nothing plugged in:
 
     Traceback (most recent call last):
       File "/home/jonny/src/run/app.py", line 106, in welcome_next_clicked_cb
