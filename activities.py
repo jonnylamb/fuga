@@ -568,6 +568,11 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
             self.image.set_from_file('ic_directions_bike_48px.svg')
         elif self.sport == 'running':
             self.image.set_from_file('ic_directions_walk_48px.svg')
+        else:
+            self.image.set_from_icon_name('preferences-system-time-symbolic',
+                                          self.ICON_SIZE)
+
+        self.changed()
 
 class UploadDialog(Gtk.Dialog):
     def __init__(self, activity):
