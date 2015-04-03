@@ -65,6 +65,7 @@ class Correre(Gtk.Application):
         def save_config():
             with open(CONFIG_PATH, 'w') as configfile:
                 config.write(configfile)
+            os.chmod(CONFIG_PATH, 0600)
         config.save = save_config
 
         return config
