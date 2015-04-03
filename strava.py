@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 
 from gi.repository import GObject, Soup, GLib, Gio
 
@@ -111,3 +112,51 @@ class Uploader(GObject.GObject):
 
         self.session.send_async(message, callback=self.sent_cb)
         return False
+
+if __name__ == '__main__':
+    token, path = sys.argv[1:]
+
+    class FakeConfig(object):
+        def __init__(self, token):
+            self.token = token
+
+        def get(self, key, item):
+            if key == 'strava' and item == 'access_token':
+                return self.token
+            return None
+
+    class FakeApp(object):
+        def __init__(self, token):
+            self.config = FakeConfig(token)
+
+    class FakeActivity(object):
+        def __init__(self, token, path):
+            self.app = FakeApp(token)
+            self.filename = os.path.basename(path)
+            self.full_path = path
+
+    activity = FakeActivity(token, path)
+
+    uploader = Uploader(activity)
+    loop = GObject.MainLoop()
+
+    def status_changed_cb(uploader, status):
+        if status == Uploader.Status.NONE:
+            pass
+        elif status == Uploader.Status.UPLOADING:
+            print 'uploading...'
+        elif status == Uploader.Status.WAITING:
+            print 'waiting...'
+        elif status == Uploader.Status.DONE:
+            print 'done:', uploader.activity_id
+            loop.quit()
+        elif status == Uploader.Status.ERROR:
+            print 'error:', uploader.error
+            loop.quit()
+        elif status == Uploader.Status.DUPLICATE:
+            print 'duplicate:', uploader.activity_id
+            loop.quit()
+    uploader.connect('status-changed', status_changed_cb)
+
+    uploader.start()
+    loop.run()
