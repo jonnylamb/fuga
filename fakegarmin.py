@@ -98,11 +98,11 @@ class FakeGarmin(GObject.GObject):
 
     @queueable()
     def download_file(self, antfile, progress_cb):
-        return foobar
+        raise NotImplementedError
 
     @queueable()
     def delete_file(self, antfile):
-        return True
+        raise NotImplementedError
 
     def shutdown(self):
         self.funcs = []
