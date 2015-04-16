@@ -391,6 +391,7 @@ class Activity(GObject.GObject):
     def full_path(self):
         return self.antfile.path
 
+    @property
     def uri(self):
         gfile = Gio.File.new_for_path(self.full_path)
         return gfile.get_uri()
@@ -489,7 +490,7 @@ class Activity(GObject.GObject):
         self.change_status(Activity.Status.DOWNLOADED)
 
         recent = Gtk.RecentManager()
-        recent.add_item(self.antfile.uri)
+        recent.add_item(self.uri)
 
     def delete(self):
         self.app.queue.delete_file(self.delete_cb, self.antfile)
