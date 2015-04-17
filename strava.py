@@ -77,14 +77,18 @@ class Uploader(GObject.GObject):
 
         def cb(data):
             stream.close()
-            try:
-                self.read_response(json.loads(data))
-            except:
-                print data
-                raise
+            self.read_response(data)
         utils.read_stream_async(stream, cb)
 
-    def read_response(self, data):
+    def read_response(self, raw):
+        try:
+            data = json.loads(raw)
+        except Exception as e:
+            # something went wrong
+            self.error = e.message
+            self.change_status(Uploader.Status.ERROR)
+            return
+
         self.id = data['id']
 
         if data['error']:
