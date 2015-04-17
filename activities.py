@@ -863,14 +863,15 @@ class ActivityDownloadingDetails(Gtk.Box):
         self.progress.set_fraction(fraction)
         self.label.set_markup('<i>Downloading...</i>')
 
-class ActivityDetails(Gtk.ScrolledWindow):
+class ActivityDetails(Gtk.Box):
     def __init__(self, activity):
-        Gtk.ScrolledWindow.__init__(self)
+        Gtk.Box.__init__(self)
+
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+        self.get_style_context().add_class('view')
+        self.get_style_context().add_class('contacts-main-view')
 
         self.activity = activity
-
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        self.add(box)
 
         grid = Gtk.Grid()
         grid.set_row_spacing(12)
@@ -879,13 +880,7 @@ class ActivityDetails(Gtk.ScrolledWindow):
         grid.set_hexpand(True)
         grid.set_vexpand(True)
         grid.set_property('margin', 24)
-        grid.set_focus_vadjustment(self.get_vadjustment());
-        box.pack_start(grid, True, True, 0)
-
-        # the GtkViewport has now been created
-        viewport = self.get_child()
-        viewport.get_style_context().add_class('view')
-        viewport.get_style_context().add_class('contacts-main-view')
+        self.pack_start(grid, True, True, 0)
 
         image = Gtk.Image(icon_name='preferences-system-time-symbolic', icon_size=Gtk.IconSize.DIALOG)
         grid.attach(image, 0, 0, 1, 1)
@@ -931,7 +926,7 @@ class ActivityDetails(Gtk.ScrolledWindow):
 
         # action bar
         bar = Gtk.ActionBar()
-        box.pack_start(bar, False, False, 0)
+        self.pack_start(bar, False, False, 0)
 
         self.upload_button = Gtk.Button('Upload to Strava')
         self.strava_id_updated_cb(None, None)
