@@ -934,8 +934,7 @@ class ActivityDetails(Gtk.ScrolledWindow):
         box.pack_start(bar, False, False, 0)
 
         self.upload_button = Gtk.Button('Upload to Strava')
-        if self.activity.strava_id:
-            self.upload_button.set_label('View activity on Strava')
+        self.strava_id_updated_cb(None, None)
         bar.pack_end(self.upload_button)
         self.upload_button.connect('clicked', self.upload_view_clicked_cb)
         self.activity.connect('strava-id-updated', self.strava_id_updated_cb)
