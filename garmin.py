@@ -2,6 +2,7 @@ import os
 import sys
 import array
 import time
+from datetime import datetime
 
 from gi.repository import GLib, GObject
 
@@ -133,7 +134,14 @@ class AntFile(object):
 
     @property
     def save_date(self):
-        return self.antfile.get_date()
+        dt = self.antfile.get_date()
+
+        # we have to do this silly conversion to get the utc datetime.
+        # openant already creates a datetime for us, but it's in the
+        # local tz.
+        seconds = (dt - datetime.fromtimestamp(0)).total_seconds()
+
+        return datetime.utcfromtimestamp(seconds)
 
     @property
     def index(self):
