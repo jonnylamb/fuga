@@ -72,8 +72,16 @@ class Uploader(GObject.GObject):
 
         self.change_status(Uploader.Status.UPLOADING)
 
+    def error_from_exception(self, e):
+        self.error = e.message
+        self.change_status(Uploader.Status.ERROR)
+
     def sent_cb(self, session, result):
-        stream = session.send_finish(result)
+        try:
+            stream = session.send_finish(result)
+        except Exception as e:
+            self.error_from_exception(e)
+            return
 
         def cb(data):
             stream.close()
@@ -84,9 +92,7 @@ class Uploader(GObject.GObject):
         try:
             data = json.loads(raw)
         except Exception as e:
-            # something went wrong
-            self.error = e.message
-            self.change_status(Uploader.Status.ERROR)
+            self.error_from_exception(e)
             return
 
         self.id = data['id']
