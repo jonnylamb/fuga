@@ -586,9 +586,9 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
             self.image.set_from_icon_name('weather-fog-symbolic',
                 self.ICON_SIZE)
         elif self.sport == 'cycling':
-            self.image.set_from_file('ic_directions_bike_48px.svg')
+            self.image.set_from_file('ui/ic_directions_bike_48px.svg')
         elif self.sport == 'running':
-            self.image.set_from_file('ic_directions_walk_48px.svg')
+            self.image.set_from_file('ui/ic_directions_walk_48px.svg')
         else:
             self.image.set_from_icon_name('preferences-system-time-symbolic',
                                           self.ICON_SIZE)

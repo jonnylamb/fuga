@@ -5,10 +5,10 @@ from gi.repository import Gtk, GLib, Gio, Gdk
 
 import ant.fs.file
 
-import style
-from activities import Activities, ActivitiesHeader
-from loading import Loading, LoadingHeader
-from welcome import Welcome, WelcomeHeader
+import ui.style
+from ui.activities import Activities, ActivitiesHeader
+from ui.loading import Loading, LoadingHeader
+from ui.welcome import Welcome, WelcomeHeader
 from fakegarmin import FakeGarmin
 from garmin import Garmin
 from queue import GarminQueue
@@ -26,7 +26,7 @@ class Correre(Gtk.Application):
 
         self.config = self.create_config()
 
-        style.setup()
+        ui.style.setup()
 
         if 'FAKE_GARMIN' in os.environ:
             cls = FakeGarmin
