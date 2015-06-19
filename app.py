@@ -101,12 +101,17 @@ class Window(Gtk.ApplicationWindow):
         return self.show_page(self.current_page)
 
     def show_page(self, current):
-        page_name, _, header_type = self.pages[self.current_page]
+        page_name, _, header_type = self.pages[current]
         page = self.stack.get_child_by_name(page_name)
+
+        old_child = self.stack.get_visible_child()
 
         page.show_all()
         self.stack.set_visible_child_full(page_name,
             Gtk.StackTransitionType.SLIDE_LEFT)
+
+        if old_child:
+            old_child.hide()
 
         header = header_type()
         header.show_all()

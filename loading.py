@@ -22,6 +22,8 @@ class Loading(Gtk.Bin):
     def __init__(self, app):
         Gtk.Bin.__init__(self)
 
+        self.app = app
+
         def changed_cb(queue, garmin):
             if not garmin:
                 return
@@ -33,3 +35,11 @@ class Loading(Gtk.Bin):
 
     def status_changed_cb(self, garmin, status):
         self.label.set_text(STATUSES[status])
+
+    def show_all(self):
+        Gtk.Bin.show_all(self)
+        self.app.mark_busy()
+
+    def hide(self):
+        Gtk.Bin.hide(self)
+        self.app.unmark_busy()
