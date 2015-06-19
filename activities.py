@@ -595,52 +595,79 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
 
         self.changed()
 
-class UploadDialog(Gtk.Dialog):
-    def __init__(self, activity):
-        Gtk.Dialog.__init__(self)
+class UploadInfoBar(Gtk.InfoBar):
+    def __init__(self):
+        Gtk.InfoBar.__init__(self)
 
-        self.activity = activity
-
-        self.set_title('Upload activity')
-        self.set_modal(True)
-        self.set_size_request(500, -1)
+        self.set_no_show_all(True)
+        self.connect('response', self.response_cb)
+        self.uploader = None
 
         content = self.get_content_area()
 
-        self.label = Gtk.Label()
-        self.label.set_markup('<i>Uploading...</i>')
-        self.label.set_halign(Gtk.Align.START)
-        content.pack_start(self.label, True, True, 0)
+        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, 0)
+        hbox.show()
+        content.add(hbox)
 
-        self.progress = Gtk.ProgressBar()
-        content.pack_start(self.progress, True, True, 5)
+        self.spinner = Gtk.Spinner()
+        self.spinner.set_margin_right(8)
+        self.spinner.show()
+        hbox.pack_start(self.spinner, False, False, 0)
 
-        def pulse():
-            self.progress.pulse()
-            return True
-        self.pulse_id = GLib.timeout_add(100, pulse)
+        self.image = Gtk.Image()
+        self.image.set_margin_right(8)
+        self.image.hide()
+        hbox.pack_start(self.image, False, False, 0)
 
-        self.uploader = activity.upload()
-        self.uploader.connect('status-changed', self.status_changed_cb)
-        self.uploader.start()
+        self.label = Gtk.Label('Uploading...')
+        self.label.show()
+        hbox.pack_start(self.label, True, True, 0)
+
+        self.button = self.add_button('Close', Gtk.ResponseType.CLOSE)
+        self.button.set_sensitive(False)
+
+    def start(self, uploader):
+        self.uploader = uploader
+        uploader.connect('status-changed', self.status_changed_cb)
+
+        self.spinner.start()
+        self.show()
+
+        # just in case the upload is already ongoing
+        self.status_changed_cb(uploader, uploader.status)
 
     def status_changed_cb(self, uploader, status):
+        icon_name = 'dialog-error-symbolic'
         if status == strava.Uploader.Status.WAITING:
-            self.label.set_markup('<i>Waiting for Strava to process activity...</i>')
+            self.label.set_text('Waiting for Strava to process activity...')
+            return
         elif status == strava.Uploader.Status.DONE:
-            self.close('Uploaded successfully.')
+            self.label.set_text('Uploaded successfully.')
+            icon_name = 'emblem-ok-symbolic'
         elif status == strava.Uploader.Status.ERROR:
-            self.close('Failed to upload: {}'.format(uploader.error))
+            self.label.set_text('Failed to upload: {}'.format(uploader.error))
         elif status == strava.Uploader.Status.DUPLICATE:
-            self.close('Failed to upload: activity already uploaded.')
+            self.label.set_text('Failed to upload: activity already uploaded.')
+        else:
+            return
 
-    def close(self, message):
-        GLib.source_remove(self.pulse_id)
+        self.button.set_sensitive(True)
 
-        self.progress.set_fraction(1.0)
-        self.label.set_markup('<i>{}</i>'.format(message))
+        self.spinner.stop()
+        self.spinner.hide()
 
-        GLib.timeout_add_seconds(2, self.destroy)
+        self.image.set_from_icon_name(icon_name, Gtk.IconSize.MENU)
+        self.image.show()
+
+    def response_cb(self, infobar, response):
+        if response != Gtk.ResponseType.CLOSE:
+            return
+
+        self.hide()
+
+        if self.uploader:
+            self.uploader.disconnect_by_func(self.status_changed_cb)
+            self.uploader = None
 
 class StravaAuthDialog(Gtk.Dialog):
     def __init__(self, app):
@@ -873,6 +900,9 @@ class ActivityDetails(Gtk.Box):
 
         self.activity = activity
 
+        self.infobar = UploadInfoBar()
+        self.pack_start(self.infobar, False, False, 0)
+
         grid = Gtk.Grid()
         grid.set_row_spacing(12)
         grid.set_column_spacing(16)
@@ -937,21 +967,35 @@ class ActivityDetails(Gtk.Box):
         # once parsed fill in the blanks
         self.fill_details()
 
-    def upload_view_clicked_cb(self, data=None):
+    def upload_view_clicked_cb(self, button):
         if self.activity.strava_id:
             url = strava.ACTIVITY_URL.format(self.activity.strava_id)
             Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
         else:
             if self.activity.app.config.has_option('strava', 'access_token'):
-                self.activity.upload_to_strava()
+                uploader = self.activity.upload()
+                uploader.start()
+                uploader.connect('status-changed',
+                    lambda *x: self.strava_id_updated_cb(None, None))
+
+                self.infobar.start(uploader)
+                self.infobar.connect('response',
+                    lambda *x: self.strava_id_updated_cb(None, None))
+
+                button.set_sensitive(False)
+
             else:
                 dialog = StravaAuthDialog(self.activity.app)
                 dialog.connect('response', self.auth_dialog_response_cb)
                 dialog.set_transient_for(self.activity.window)
                 dialog.show_all()
 
+    def uploader_status_changed_cb(self, uploader, status):
+        self.strava_id_updated_cb(None, None)
+
     def strava_id_updated_cb(self, activity, new_id):
         if self.activity.strava_id:
+            self.upload_button.set_sensitive(True)
             self.upload_button.set_label('View activity on Strava')
 
     def auth_dialog_response_cb(self, dialog, response_id):
@@ -1010,6 +1054,18 @@ class ActivityDetails(Gtk.Box):
             hours, mins, secs = f.get_moving_time()
             self.moving_time_label.set_markup('{0}:{1:02d}:{2:02d}\n' \
                 '<span color="gray">Moving Time</span>'.format(hours, mins, secs))
+
+            if activity.uploader is not None:
+                activity.uploader.connect('status-changed',
+                    lambda *x: self.strava_id_updated_cb(None, None))
+
+                self.infobar.start(activity.uploader)
+                self.infobar.connect('response',
+                    lambda *x: self.strava_id_updated_cb(None, None))
+
+                self.upload_button.set_sensitive(False)
+
+            # end of status_changed_cb
 
         if self.activity.status == Activity.Status.PARSED:
             status_changed_cb(self.activity)

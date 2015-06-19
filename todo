@@ -5,8 +5,6 @@ ui
 
 * use GtkBuilder
 
-O move the strava uploading dialog into the main window as a infobar
-
 O work out what to do with icons
 
 * implement multi-delete
