@@ -32,6 +32,10 @@ O rename activities.py to ui/activities.py and move Activity to activity.py
 
 * make queuing not really ugly
 
+* add "list current items" device as fakegarmin
+
+* rename fakegarmin to something like dirlist and add edge 800 device
+
 tracebacks
 ==========
 
