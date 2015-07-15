@@ -13,10 +13,14 @@ O work out what to do with icons
 
 * does deleting the last item break things? probably.
 
+O add a .desktop file
+
 misc
 ====
 
 O work out name: correre or corri?
+
+O add license headers
 
 garmin connectivity
 ===================
@@ -33,6 +37,8 @@ design
 * add "list current items" device as fakegarmin
 
 * rename fakegarmin to something like dirlist and add edge 800 device
+
+O change activity directory, losing garmin-extractor compatibility
 
 tracebacks
 ==========
