@@ -28,8 +28,6 @@ garmin connectivity
 design
 ======
 
-O rename activities.py to ui/activities.py and move Activity to activity.py
-
 * make queuing not really ugly
 
 * add "list current items" device as fakegarmin
