@@ -132,9 +132,12 @@ class Activities(Gtk.Bin):
             self.header.left_toolbar.set_title('All activities')
 
             activity = self.pane.activity_list.get_selected_row()
-            self.header.delete_button.set_visible(
-                activity.status == Activity.Status.NONE or
-                activity.status == Activity.Status.PARSED)
+            if activity:
+                self.header.delete_button.set_visible(
+                    activity.status == Activity.Status.NONE or
+                    activity.status == Activity.Status.PARSED)
+            else:
+                self.header.delete_button.hide()
 
             self.pane.revealer.set_reveal_child(False)
 
@@ -160,6 +163,9 @@ class Activities(Gtk.Bin):
         if self.content:
             self.content.destroy()
             self.content = None
+
+        if not activity:
+            return
 
         # on device but not computer
         if activity.status == Activity.Status.NONE:
