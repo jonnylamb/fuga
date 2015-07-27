@@ -74,7 +74,8 @@ class Activities(Gtk.Bin):
 
     def select_first(self):
         activity = self.pane.activity_list.get_row_at_index(0)
-        self.pane.activity_list.select_row(activity)
+        if activity:
+            self.pane.activity_list.select_row(activity)
 
     def parse_all(self, unused=None):
         def idle():
