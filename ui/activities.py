@@ -148,6 +148,12 @@ class Activities(Gtk.Bin):
         activity.delete()
 
     def row_selected_cb(self, activity_list, activity):
+        # don't keep parsing activities when the app is closing.
+        # GtkListBox will remove each item in the list and so will
+        # cause row-selected to be fired each time.
+        if activity and activity.window.in_destruction():
+            return
+
         if activity:
             self.reset_content(activity)
         else:
