@@ -297,7 +297,11 @@ class Garmin(ant.fs.manager.Application,
 
     @queueable(lambda self: self.cancel_timer(True))
     def delete_file(self, antfile):
-        return self.erase(antfile.index)
+        try:
+            self.erase(antfile.index)
+            return True
+        except ant.fs.manager.AntFSDownloadException:
+            return False
 
     def shutdown(self):
         self.funcs = []
@@ -314,14 +318,3 @@ class Garmin(ant.fs.manager.Application,
     def disconnect(self):
         ant.fs.manager.Application.disconnect(self)
         self.change_status(Garmin.Status.DISCONNECTED)
-
-    # https://github.com/Tigge/openant/pull/3
-    def erase(self, index):
-        self._send_command(EraseRequestCommand(index))
-        response = self._get_command()
-        arg = response._get_argument("response")
-
-        if arg == EraseResponse.Response.ERASE_SUCCESSFUL:
-            return True
-        else:
-            return False
