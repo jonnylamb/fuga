@@ -1,3 +1,7 @@
+# Based on Garmin-Forerunner-610-Extractor/garmin.py which is:
+# Copyright (c) 2012, Gustav Tiger <gustav@tiger.name>
+#
+# the additions are:
 # Copyright (C) 2015 Jonny Lamb <jonnylamb@jonnylamb.com>
 #
 # This library is free software; you can redistribute it and/or
