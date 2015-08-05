@@ -30,7 +30,7 @@ import ant.fs.manager
 import ant.fs.file
 from ant.fs.command import EraseRequestCommand, EraseResponse
 
-from queue import queueable
+from devicequeue import queueable
 import utils
 
 DIRECTORIES = {

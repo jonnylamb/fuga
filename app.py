@@ -27,7 +27,7 @@ from ui.loading import Loading, LoadingHeader
 from ui.welcome import Welcome, WelcomeHeader
 from fakegarmin import FakeGarmin
 from garmin import Garmin
-from queue import GarminQueue
+from devicequeue import GarminQueue
 
 CONFIG_PATH = os.path.join(GLib.get_user_config_dir(), 'correre', 'correre.ini')
 

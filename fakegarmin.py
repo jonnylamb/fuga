@@ -23,7 +23,7 @@ from gi.repository import GLib, GObject
 import ant.fs.file
 
 from garmin import Garmin, FILETYPES, AntFile
-from queue import queueable
+from devicequeue import queueable
 import utils
 
 class FakeAntFile(object):
