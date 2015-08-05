@@ -388,6 +388,17 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         dialog = UploadDialog(self)
         dialog.show_all()
 
+    def set_image_from_sport(self, image, size):
+        # TODO: use some sensible icons here
+        if self.sport == 'swimming':
+            image.set_from_icon_name('weather-fog-symbolic', size)
+        elif self.sport == 'cycling':
+            image.set_from_file('ui/ic_directions_bike_48px.svg')
+        elif self.sport == 'running':
+            image.set_from_file('ui/ic_directions_walk_48px.svg')
+        else:
+            image.set_from_icon_name('preferences-system-time-symbolic', size)
+
     def status_changed_cb(self, activity, status):
         downloading = (status == Activity.Status.DOWNLOADING)
         self.spinner.set_visible(downloading)
@@ -410,17 +421,7 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         if not self.downloaded:
             return
 
-        # TODO: use some sensible icons here
-        if self.sport == 'swimming':
-            self.image.set_from_icon_name('weather-fog-symbolic',
-                self.ICON_SIZE)
-        elif self.sport == 'cycling':
-            self.image.set_from_file('ui/ic_directions_bike_48px.svg')
-        elif self.sport == 'running':
-            self.image.set_from_file('ui/ic_directions_walk_48px.svg')
-        else:
-            self.image.set_from_icon_name('preferences-system-time-symbolic',
-                                          self.ICON_SIZE)
+        self.set_image_from_sport(self.image, self.ICON_SIZE)
 
         self.changed()
 
@@ -741,7 +742,8 @@ class ActivityDetails(Gtk.Box):
         grid.set_property('margin', 24)
         self.pack_start(grid, True, True, 0)
 
-        image = Gtk.Image(icon_name='preferences-system-time-symbolic', icon_size=Gtk.IconSize.DIALOG)
+        image = Gtk.Image()
+        activity.set_image_from_sport(image, Gtk.IconSize.DIALOG)
         grid.attach(image, 0, 0, 1, 1)
 
         label = Gtk.Label('')
