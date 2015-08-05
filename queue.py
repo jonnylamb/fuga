@@ -60,6 +60,7 @@ class GarminQueue(GObject.GObject):
 
     def status_changed_cb(self, garmin, status):
         if status == GARMIN_DISCONNECTED:
+            self.garmin.disconnect_by_func(self.status_changed_cb)
             self.emit('garmin-changed', None)
 
     def shutdown(self):
