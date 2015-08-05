@@ -27,6 +27,10 @@ garmin connectivity
 
 * ensure garmin connected to on a reconnection is the same one!
 
+O work out why device busy warning always appears
+
+O push all openant changes upstream
+
 design
 ======
 
