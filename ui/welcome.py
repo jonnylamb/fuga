@@ -16,6 +16,8 @@
 
 from gi.repository import Gtk, Pango
 
+from ant.base.driver import find_driver, DriverNotFound
+
 class WelcomeHeader(Gtk.HeaderBar):
     def __init__(self):
         Gtk.HeaderBar.__init__(self)
@@ -72,20 +74,40 @@ class Welcome(Gtk.Bin):
         device_box.pack_start(scrolled, True, True, 0)
 
         listbox = Gtk.ListBox()
+        listbox.set_activate_on_single_click(False)
         listbox.set_vexpand(True)
         listbox.set_halign(Gtk.Align.FILL)
         listbox.set_valign(Gtk.Align.FILL)
         scrolled.add(listbox)
 
-        device = AntDevice()
+        listbox.connect('row-selected', self.row_selected_cb)
+        listbox.connect('row-activated', self.row_activated_cb)
+
+        try:
+            find_driver()
+            sensitive = True
+        except DriverNotFound:
+            sensitive = False
+
+        device = AntDevice('Garmin ANT device')
+        device.set_sensitive(sensitive)
         listbox.add(device)
 
         dots = DotDotDot()
         dots.set_sensitive(False)
         listbox.add(dots)
 
+    def row_selected_cb(self, listbox, row):
+        for device in listbox.get_children():
+            if not isinstance(device, AntDevice):
+                continue
+            device.checkmark.set_visible(device == row)
+
+    def row_activated_cb(self, listbox, row):
+        print 'row activated', row
+
 class AntDevice(Gtk.ListBoxRow):
-    def __init__(self):
+    def __init__(self, name):
         Gtk.ListBoxRow.__init__(self)
 
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
@@ -96,15 +118,17 @@ class AntDevice(Gtk.ListBoxRow):
         box.set_margin_end(10)
         self.add(box)
 
-        label = Gtk.Label('Garmin ANT device')
+        label = Gtk.Label(name)
         label.set_alignment(0, 0.5)
         label.set_width_chars(40)
         box.pack_start(label, False, False, 0)
 
-        checkmark = Gtk.Image.new_from_icon_name('object-select-symbolic', Gtk.IconSize.MENU)
-        checkmark.set_margin_start(10)
-        checkmark.set_margin_end(10)
-        box.pack_start(checkmark, True, True, 0)
+        self.checkmark = Gtk.Image.new_from_icon_name('object-select-symbolic', Gtk.IconSize.MENU)
+        self.checkmark.set_margin_start(10)
+        self.checkmark.set_margin_end(10)
+        self.checkmark.set_no_show_all(True)
+        self.checkmark.hide()
+        box.pack_start(self.checkmark, True, True, 0)
 
 class DotDotDot(Gtk.ListBoxRow):
     def __init__(self):

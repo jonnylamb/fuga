@@ -107,22 +107,3 @@ tracebacks
       File "/home/jonny/src/python-fitparse/fitparse/base.py", line 97, in _parse_file_header
         raise FitParseError("Invalid .FIT File Header")
     fitparse.base.FitParseError: Invalid .FIT File Header
-
-* nothing plugged in:
-
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/app.py", line 106, in welcome_next_clicked_cb
-        self.app.queue.get_file_list(self.got_file_list_cb)
-      File "/home/jonny/src/run/queue.py", line 38, in __getattr__
-        self.emit('garmin-changed', self.cls())
-      File "/home/jonny/src/run/garmin.py", line 160, in __init__
-        ant.fs.manager.Application.__init__(self)
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 82, in __init__
-        self._node = Node()
-      File "/home/jonny/src/openant/ant/easy/node.py", line 48, in __init__
-        self.ant = Ant()
-      File "/home/jonny/src/openant/ant/base/ant.py", line 46, in __init__
-        self._driver = find_driver()
-      File "/home/jonny/src/openant/ant/base/driver.py", line 248, in find_driver
-        raise DriverNotFound
-    ant.base.driver.DriverNotFound
