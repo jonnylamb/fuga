@@ -67,20 +67,3 @@ tracebacks
       File "/home/jonny/src/run/strava.py", line 75, in sent_cb
         stream = session.send_finish(result)
     GLib.Error: g-io-error-quark: I/O sul socket scaduto (24)
-
-* bad download
-
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/garmin.py", line 221, in <lambda>
-        GLib.idle_add(lambda: cb(ret))
-      File "/home/jonny/src/run/activities.py", line 483, in file_downloaded_cb
-        self.setup_fit()
-      File "/home/jonny/src/run/activities.py", line 327, in setup_fit
-        self.fit = fit.Fit(self.full_path)
-      File "/home/jonny/src/run/fit.py", line 24, in __init__
-        data_processor=fitparse.StandardUnitsDataProcessor())
-      File "/home/jonny/src/python-fitparse/fitparse/base.py", line 56, in __init__
-        self._parse_file_header()
-      File "/home/jonny/src/python-fitparse/fitparse/base.py", line 97, in _parse_file_header
-        raise FitParseError("Invalid .FIT File Header")
-    fitparse.base.FitParseError: Invalid .FIT File Header

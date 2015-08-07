@@ -196,6 +196,10 @@ class Activities(Gtk.Bin):
         elif activity.status == Activity.Status.PARSED:
             self.content = ActivityDetails(activity)
 
+        # failed to parse
+        elif activity.status == Activity.Status.FAILED:
+            self.content = ActivityFailed(activity)
+
         # just deleted
         elif activity.status == Activity.Status.DELETED:
             self.pane.activity_list.remove(activity)
@@ -719,6 +723,39 @@ class ActivityDownloadingDetails(Gtk.Box):
 
         self.progress.set_fraction(fraction)
         self.label.set_markup('<i>Downloading...</i>')
+
+class ActivityFailed(Gtk.Grid):
+    def __init__(self, activity):
+        Gtk.Grid.__init__(self)
+
+        self.activity = activity
+
+        self.set_row_spacing(12)
+        self.set_column_spacing(16)
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+        self.set_hexpand(True)
+        self.set_vexpand(True)
+        self.set_property('margin', 24)
+
+        image = Gtk.Image(icon_name='dialog-error-symbolic', icon_size=Gtk.IconSize.DIALOG)
+        self.attach(image, 0, 0, 1, 1)
+
+        label = Gtk.Label('')
+        label.set_hexpand(True)
+        label.set_halign(Gtk.Align.START)
+        label.set_valign(Gtk.Align.CENTER)
+        label.set_margin_left(6)
+        label.set_property('xalign', 0.0)
+        label.set_markup('<span font="16">Failed to parse file</span>')
+        self.attach(label, 1, 0, 1, 1)
+
+
+        label = Gtk.Label()
+        label.set_markup('The file <tt>%s</tt> could not be parsed.' % activity.full_path)
+        label.set_property('xalign', 0.0)
+        label.set_halign(Gtk.Align.START)
+        label.set_line_wrap(True)
+        self.attach(label, 0, 1, 2, 1)
 
 class ActivityDetails(Gtk.Box):
     def __init__(self, activity):

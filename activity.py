@@ -30,7 +30,8 @@ class Activity(GObject.GObject):
         DOWNLOADED = 2
         PARSING = 3
         PARSED = 4
-        DELETED = 5
+        FAILED = 5
+        DELETED = 6
 
     def __init__(self, app, antfile):
         GObject.GObject.__init__(self)
@@ -53,6 +54,7 @@ class Activity(GObject.GObject):
         mapping = {
             fit.Fit.Status.PARSING: Activity.Status.PARSING,
             fit.Fit.Status.PARSED: Activity.Status.PARSED,
+            fit.Fit.Status.FAILED: Activity.Status.FAILED,
         }
 
         for fstatus, astatus in mapping.items():

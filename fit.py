@@ -15,6 +15,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import fitparse
+from fitparse.base import FitParseError
 
 from gi.repository import GObject
 
@@ -26,6 +27,7 @@ class Fit(GObject.GObject):
         NONE = 0
         PARSING = 1
         PARSED = 2
+        FAILED = 3
 
     @GObject.Signal(arg_types=(int,))
     def status_changed(self, status):
@@ -36,8 +38,6 @@ class Fit(GObject.GObject):
 
         self.filename = filename
 
-        self.fit = fitparse.FitFile(filename,
-            data_processor=fitparse.StandardUnitsDataProcessor())
         self.summary = None
 
         self.status = Fit.Status.NONE
@@ -49,6 +49,14 @@ class Fit(GObject.GObject):
         self.status = Fit.Status.PARSING
         self.emit('status-changed', self.status)
 
+        try:
+            self.fit = fitparse.FitFile(self.filename,
+                data_processor=fitparse.StandardUnitsDataProcessor())
+        except FitParseError:
+            self.status = Fit.Status.FAILED
+            GObject.idle_add(lambda: self.emit('status-changed', self.status))
+            return
+
         self.fit.parse()
 
         # find the summary message
@@ -57,10 +65,8 @@ class Fit(GObject.GObject):
                 self.summary = msg
                 break
 
-        def emit_parsed():
-            self.status = Fit.Status.PARSED
-            self.emit('status-changed', self.status)
-        GObject.idle_add(emit_parsed)
+        self.status = Fit.Status.PARSED
+        GObject.idle_add(lambda: self.emit('status-changed', self.status))
 
     def records(self):
         for m in self.fit.messages:
