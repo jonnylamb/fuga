@@ -61,29 +61,6 @@ tracebacks
       File "/home/jonny/src/run/strava.py", line 93, in read_response
         self.activity_id = int(data['error'].split()[-1])
 
-* on authentication
-
-    Traceback (most recent call last):
-      File "/usr/lib/python2.7/threading.py", line 810, in __bootstrap_inner
-        self.run()
-      File "/usr/lib/python2.7/threading.py", line 763, in run
-        self.__target(*self.__args, **self.__kwargs)
-      File "/home/jonny/src/run/garmin.py", line 284, in start
-        ant.fs.manager.Application.start(self)
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 202, in start
-        self._main()
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 131, in _main
-        if self.on_authentication(beacon):
-      File "/home/jonny/src/run/garmin.py", line 199, in on_authentication
-        self.authentication_passkey(device.passkey)
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 356, in authentication_passkey
-        response = self._get_command()
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 171, in _get_command
-        c = self._queue.get(True, timeout)
-      File "/usr/lib/python2.7/Queue.py", line 176, in get
-        raise Empty
-    Empty
-
 * uploading to strava timing out
 
     Traceback (most recent call last):

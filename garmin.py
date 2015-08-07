@@ -230,7 +230,7 @@ class Garmin(ant.fs.manager.Application,
 
             self.device = device
             return True
-        except ant.fs.manager.AntFSAuthenticationException as e:
+        except:
             self.change_status(Garmin.Status.AUTHENTICATION_FAILED)
             return False
 
