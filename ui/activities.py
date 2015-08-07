@@ -640,7 +640,7 @@ class NoActivities(Gtk.Grid):
         self.attach(label, 1, 0, 1, 1)
 
 
-        label = Gtk.Label('There are currently no activities on your device.' +
+        label = Gtk.Label('There are currently no activities on your device. ' +
                           'Go for a run, ride, or swim and then come back!')
         label.set_property('xalign', 0.0)
         label.set_halign(Gtk.Align.START)
