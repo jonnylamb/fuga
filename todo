@@ -15,6 +15,8 @@ O add a .desktop file
 
 * move strava UI code out of activities.py
 
+O make stack pages and headers link up, especially the welcome page
+
 misc
 ====
 
