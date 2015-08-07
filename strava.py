@@ -117,7 +117,11 @@ class Uploader(GObject.GObject):
             self.error = data['error']
 
             if 'duplicate' in data['error']:
-                self.activity_id = int(data['error'].split()[-1])
+                id_str = data['error'].split()[-1]
+                # could be '1337' or '(1337)'
+                if id_str[0] == '(' and id_str[-1] == ')':
+                    id_str = id_str[1:-1]
+                self.activity_id = int(id_str)
                 self.change_status(Uploader.Status.DUPLICATE)
             else:
                 self.change_status(Uploader.Status.ERROR)

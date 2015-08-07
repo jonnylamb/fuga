@@ -50,17 +50,6 @@ known issues
 tracebacks
 ==========
 
-* duplicate strava upload
-
-    {"id":244886565,"external_id":"2014-11-07_23-46-58_4_218.fit","error":"2014-11-07_23-46-58_4_218.fit duplicate of an uploading activity (244886541)","status":"There was an error processing your activity.","activity_id":null}
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/utils.py", line 25, in read_stream_cb
-        cb(data)
-      File "/home/jonny/src/run/strava.py", line 80, in cb
-        self.read_response(json.loads(data))
-      File "/home/jonny/src/run/strava.py", line 93, in read_response
-        self.activity_id = int(data['error'].split()[-1])
-
 * uploading to strava timing out
 
     Traceback (most recent call last):
