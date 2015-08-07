@@ -46,13 +46,3 @@ known issues
 ============
 
 * https://github.com/Tigge/openant/issues/14
-
-tracebacks
-==========
-
-* uploading to strava timing out
-
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/strava.py", line 75, in sent_cb
-        stream = session.send_finish(result)
-    GLib.Error: g-io-error-quark: I/O sul socket scaduto (24)
