@@ -42,79 +42,13 @@ design
 
 O change activity directory, losing garmin-extractor compatibility
 
+known issues
+============
+
+* https://github.com/Tigge/openant/issues/14
+
 tracebacks
 ==========
-
-* device in use
-
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/activities.py", line 737, in download_clicked_cb
-        self.activity.download()
-      File "/home/jonny/src/run/activities.py", line 472, in download
-        self.app.queue.download_file(self.file_downloaded_cb,
-      File "/home/jonny/src/run/app.py", line 31, in __getattr__
-        self.emit('garmin-changed', self.cls())
-      File "/home/jonny/src/run/garmin.py", line 170, in __init__
-        ant.fs.manager.Application.__init__(self)
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 82, in __init__
-        self._node = Node()
-      File "/home/jonny/src/openant/ant/easy/node.py", line 48, in __init__
-        self.ant = Ant()
-      File "/home/jonny/src/openant/ant/base/ant.py", line 59, in __init__
-        self._driver.open()
-      File "/home/jonny/src/openant/ant/base/driver.py", line 182, in open
-        dev.set_configuration()
-      File "/home/jonny/src/pyusb/usb/core.py", line 559, in set_configuration
-        self._ctx.managed_set_configuration(self, configuration)
-      File "/home/jonny/src/pyusb/usb/core.py", line 92, in managed_set_configuration
-        self.backend.set_configuration(self.handle, cfg.bConfigurationValue)
-      File "/home/jonny/src/pyusb/usb/backend/libusb1.py", line 724, in set_configuration
-        _check(self.lib.libusb_set_configuration(dev_handle.handle, config_value))
-      File "/home/jonny/src/pyusb/usb/backend/libusb1.py", line 554, in _check
-        raise USBError(_str_error[ret], ret, _libusb_errno[ret])
-    usb.core.USBError: [Errno 16] Resource busy
-
-* strava upload failing
-
-    {"id":238653776,"external_id":"2014-10-31_22-00-12_4_217.fit","error":null,"status":"Your activity is still being processed.
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/utils.py", line 25, in read_stream_cb
-        cb(data)
-      File "/home/jonny/src/run/strava.py", line 80, in cb
-        self.read_response(json.loads(data))
-      File "/usr/lib/python2.7/json/__init__.py", line 338, in loads
-        return _default_decoder.decode(s)
-      File "/usr/lib/python2.7/json/decoder.py", line 366, in decode
-        obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-      File "/usr/lib/python2.7/json/decoder.py", line 382, in raw_decode
-        obj, end = self.scan_once(s, idx)
-    ValueError: Unterminated string starting at: line 1 column 85 (char 84)
-
-* handle no ant usb stick:
-
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/app.py", line 77, in activate_cb
-        self.setup_garmin()
-      File "/home/jonny/src/run/app.py", line 54, in setup_garmin
-        self.garmin = Garmin()
-      File "/home/jonny/src/run/garmin.py", line 159, in __init__
-        ant.fs.manager.Application.__init__(self)
-      File "/home/jonny/src/openant/ant/fs/manager.py", line 82, in __init__
-        self._node = Node()
-      File "/home/jonny/src/openant/ant/easy/node.py", line 48, in __init__
-        self.ant = Ant()
-      File "/home/jonny/src/openant/ant/base/ant.py", line 46, in __init__
-        self._driver = find_driver()
-      File "/home/jonny/src/openant/ant/base/driver.py", line 248, in find_driver
-        raise DriverNotFound
-    ant.base.driver.DriverNotFound
-
-* unselecting select when no activities. there probs shouldn't be the select button sensitive when there aren't any activities.
-
-    Traceback (most recent call last):
-      File "/home/jonny/src/run/activities.py", line 118, in select_toggled_cb
-        activity.status == Activity.Status.NONE or
-    AttributeError: 'NoneType' object has no attribute 'status'
 
 * duplicate strava upload
 
