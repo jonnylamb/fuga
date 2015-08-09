@@ -197,7 +197,8 @@ class Activities(Gtk.Bin):
             self.content = ActivityDetails(activity)
 
         # failed to parse
-        elif activity.status == Activity.Status.FAILED:
+        elif activity.status in (Activity.Status.DOWNLOAD_FAILED,
+                                 Activity.Status.PARSE_FAILED):
             self.content = ActivityFailed(activity)
 
         # just deleted
@@ -383,7 +384,7 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
 
         if not self.downloaded:
             self.label.set_sensitive(False)
-            self.image.set_from_icon_name('emblem-important-symbolic', self.ICON_SIZE)
+            self.image.set_from_icon_name('dialog-question-symbolic', self.ICON_SIZE)
 
         self.connect('status-changed', self.status_changed_cb)
         self.status_changed_cb(self, self.status)
@@ -415,6 +416,8 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
             return
         elif status == Activity.Status.DOWNLOADED:
             self.label.set_sensitive(True)
+        elif status == Activity.Status.DOWNLOAD_FAILED:
+            self.image.set_from_icon_name('dialog-error-symbolic', self.ICON_SIZE)
 
         # TODO: change format
         self.date_str = self.date.strftime('%A %d %b %Y')
@@ -578,7 +581,7 @@ class ActivityMissingDetails(Gtk.Grid):
         self.set_vexpand(True)
         self.set_property('margin', 24)
 
-        image = Gtk.Image(icon_name='emblem-important-symbolic', icon_size=Gtk.IconSize.DIALOG)
+        image = Gtk.Image(icon_name='dialog-question-symbolic', icon_size=Gtk.IconSize.DIALOG)
         self.attach(image, 0, 0, 1, 1)
 
         label = Gtk.Label('')
@@ -746,16 +749,34 @@ class ActivityFailed(Gtk.Grid):
         label.set_valign(Gtk.Align.CENTER)
         label.set_margin_left(6)
         label.set_property('xalign', 0.0)
-        label.set_markup('<span font="16">Failed to parse file</span>')
+        if activity.status == Activity.Status.PARSE_FAILED:
+            title = 'Failed to parse file'
+        else:
+            title = 'Failed to download file'
+        label.set_markup('<span font="16">%s</span>' % title)
         self.attach(label, 1, 0, 1, 1)
 
-
         label = Gtk.Label()
-        label.set_markup('The file <tt>%s</tt> could not be parsed.' % activity.full_path)
+        if activity.status == Activity.Status.PARSE_FAILED:
+            markup = 'The file <tt>%s</tt> could not be parsed.' % activity.full_path
+        elif activity.status == Activity.Status.DOWNLOAD_FAILED:
+            markup  = 'The activity failed to download. You can try again.'
+
+        label.set_markup(markup)
         label.set_property('xalign', 0.0)
         label.set_halign(Gtk.Align.START)
         label.set_line_wrap(True)
         self.attach(label, 0, 1, 2, 1)
+
+        button = Gtk.Button('Download')
+        button.get_style_context().add_class(Gtk.STYLE_CLASS_RAISED)
+        button.set_focus_on_click(False)
+        self.attach(button, 0, 2, 3, 1)
+
+        button.connect('clicked', self.download_clicked_cb)
+
+    def download_clicked_cb(self, button):
+        self.activity.download()
 
 class ActivityDetails(Gtk.Box):
     def __init__(self, activity):

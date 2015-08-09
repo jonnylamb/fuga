@@ -27,11 +27,12 @@ class Activity(GObject.GObject):
     class Status:
         NONE = 0 # only on the device
         DOWNLOADING = 1
-        DOWNLOADED = 2
-        PARSING = 3
-        PARSED = 4
-        FAILED = 5
-        DELETED = 6
+        DOWNLOAD_FAILED = 2
+        DOWNLOADED = 3
+        PARSING = 4
+        PARSE_FAILED = 5
+        PARSED = 6
+        DELETED = 7
 
     def __init__(self, app, antfile):
         GObject.GObject.__init__(self)
@@ -54,7 +55,7 @@ class Activity(GObject.GObject):
         mapping = {
             fit.Fit.Status.PARSING: Activity.Status.PARSING,
             fit.Fit.Status.PARSED: Activity.Status.PARSED,
-            fit.Fit.Status.FAILED: Activity.Status.FAILED,
+            fit.Fit.Status.FAILED: Activity.Status.PARSE_FAILED,
         }
 
         for fstatus, astatus in mapping.items():
@@ -207,6 +208,10 @@ class Activity(GObject.GObject):
         self.change_status(Activity.Status.DOWNLOADING)
 
     def file_downloaded_cb(self, data):
+        if not data:
+            self.change_status(Activity.Status.DOWNLOAD_FAILED)
+            return
+
         with open(self.full_path, 'wb') as f:
             f.write(data)
         self.setup_fit()

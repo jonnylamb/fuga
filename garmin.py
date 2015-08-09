@@ -231,6 +231,7 @@ class Garmin(ant.fs.manager.Application,
             self.device = device
             return True
         except:
+            # print out this traceback with more logging
             self.change_status(Garmin.Status.AUTHENTICATION_FAILED)
             return False
 
@@ -293,7 +294,12 @@ class Garmin(ant.fs.manager.Application,
         def cb(new_progress):
             GLib.idle_add(lambda: progress_cb(new_progress))
 
-        return self.download(antfile.index, cb)
+        try:
+            return self.download(antfile.index, cb)
+        except:
+            # print out this traceback with more logging
+            self.change_status(Garmin.Status.DISCONNECTED)
+            return None
 
     @queueable(lambda self: self.cancel_timer(True))
     def delete_file(self, antfile):
@@ -316,5 +322,9 @@ class Garmin(ant.fs.manager.Application,
         ant.fs.manager.Application.start(self)
 
     def disconnect(self):
+        if self.status in (Garmin.Status.DISCONNECTED,
+                           Garmin.Status.AUTHENTICATION_FAILED):
+            return
+
         ant.fs.manager.Application.disconnect(self)
         self.change_status(Garmin.Status.DISCONNECTED)
