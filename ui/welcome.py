@@ -19,7 +19,7 @@ from gi.repository import Gtk, Pango
 from ant.base.driver import find_driver, DriverNotFound
 
 class WelcomeHeader(Gtk.HeaderBar):
-    def __init__(self):
+    def __init__(self, page):
         Gtk.HeaderBar.__init__(self)
 
         self.set_show_close_button(False)
@@ -30,6 +30,9 @@ class WelcomeHeader(Gtk.HeaderBar):
         self.next_button = Gtk.Button('Next')
         self.next_button.get_style_context().add_class('suggested-action')
         self.pack_end(self.next_button)
+
+        # a bit hacky
+        self.next_button.set_sensitive(page.sensitive)
 
 class Welcome(Gtk.Bin):
     def __init__(self, app):
@@ -85,12 +88,12 @@ class Welcome(Gtk.Bin):
 
         try:
             find_driver()
-            sensitive = True
+            self.sensitive = True
         except DriverNotFound:
-            sensitive = False
+            self.sensitive = False
 
         device = AntDevice('Garmin ANT device')
-        device.set_sensitive(sensitive)
+        device.set_sensitive(self.sensitive)
         listbox.add(device)
 
         dots = DotDotDot()

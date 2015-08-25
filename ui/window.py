@@ -65,7 +65,7 @@ class Window(Gtk.ApplicationWindow):
         if old_child:
             old_child.hide()
 
-        header = header_type()
+        header = header_type(page)
         header.show_all()
         self.set_titlebar(header)
 

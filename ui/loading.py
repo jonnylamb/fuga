@@ -24,7 +24,7 @@ STATUSES = [ 'None',
              'Disconnected']
 
 class LoadingHeader(Gtk.HeaderBar):
-    def __init__(self):
+    def __init__(self, page):
         Gtk.HeaderBar.__init__(self)
 
         self.set_title('Loading')

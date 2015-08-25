@@ -15,8 +15,6 @@ O add a .desktop file
 
 * move strava UI code out of activities.py
 
-O make welcome page next button depend on if there are any sensitive items in the list box
-
 misc
 ====
 

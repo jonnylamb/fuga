@@ -233,7 +233,7 @@ class Activities(Gtk.Bin):
         activity.connect('status-changed', self.activity_status_changed_cb)
 
 class ActivitiesHeader(Gtk.Box):
-    def __init__(self):
+    def __init__(self, page):
         Gtk.Box.__init__(self)
 
         # left toolbar
