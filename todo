@@ -15,7 +15,7 @@ O add a .desktop file
 
 * move strava UI code out of activities.py
 
-O make stack pages and headers link up, especially the welcome page
+O make welcome page next button depend on if there are any sensitive items in the list box
 
 misc
 ====
@@ -39,6 +39,8 @@ design
 * rename fakegarmin to something like dirlist and add edge 800 device
 
 O change activity directory, losing garmin-extractor compatibility
+
+* make stack pages and headers link up, especially for the welcome page
 
 known issues
 ============
