@@ -14,6 +14,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import os
+
 from gi.repository import Gtk, Pango
 
 from ant.base.driver import find_driver, DriverNotFound
@@ -86,11 +88,14 @@ class Welcome(Gtk.Bin):
         listbox.connect('row-selected', self.row_selected_cb)
         listbox.connect('row-activated', self.row_activated_cb)
 
-        try:
-            find_driver()
+        if 'FAKE_GARMIN' in os.environ:
             self.sensitive = True
-        except DriverNotFound:
-            self.sensitive = False
+        else:
+            try:
+                find_driver()
+                self.sensitive = True
+            except DriverNotFound:
+                self.sensitive = False
 
         device = AntDevice('Garmin ANT device')
         device.set_sensitive(self.sensitive)
