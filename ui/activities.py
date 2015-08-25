@@ -14,13 +14,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import random
-from threading import Thread
 import json
-from datetime import datetime
 
 # for champlain
-from gi.repository import GtkClutter, Clutter
+from gi.repository import GtkClutter
 GtkClutter.init([])
 
 from gi.repository import Gtk, GLib, Pango, Gdk, GtkChamplain, Champlain, WebKit
