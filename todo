@@ -11,7 +11,7 @@ ui
 
 * does deleting the last item break things? probably.
 
-O add a .desktop file
+* add a .desktop file
 
 * move strava UI code out of activities.py
 
