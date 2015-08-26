@@ -29,7 +29,7 @@ class Window(Gtk.ApplicationWindow):
         self.app = app
 
         self.set_default_size(1000, 700)
-        self.set_title('Correre')
+        self.set_title('Fuga')
 
         self.stack = Gtk.Stack()
         self.add(self.stack)

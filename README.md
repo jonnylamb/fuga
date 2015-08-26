@@ -1,5 +1,5 @@
-Correre
-=======
+Fuga
+====
 
 A GNOME application for managing activities from a Garmin device using
 the ANT-FS protocol.
@@ -17,7 +17,7 @@ Dependencies
 Usage
 -----
 
-With the dependencies in their appropriate path, call `./correre`.
+With the dependencies in their appropriate path, call `./fuga`.
 
 Setting the `FAKE_GARMIN` environment variable will make it not
 connect to any Garmin device and will instead list the activities
@@ -32,12 +32,12 @@ appear to help get permission.
 Local storage
 -------------
 
-Device information is saved in the `$XDG_DATA_HOME/correre/<device
+Device information is saved in the `$XDG_DATA_HOME/fuga/<device
 id>` (`$XDG_DATA_HOME` defaults to `~/.local/share`) folder. The
 activity FIT files are saved in the `activities` subfolder.
 
-There is a small `correre.ini` file saved in the
-`$XDG_CONFIG_HOME/correre/` folder.
+There is a small `fuga.ini` file saved in the
+`$XDG_CONFIG_HOME/fuga/` folder.
 
 Known issues
 ------------
@@ -69,10 +69,6 @@ UI:
 * does deleting the last item break things? probably.
 * add a desktop file
 * move strava UI code out of `activities.py`
-
-Misc:
-
-* decide on name (!)
 
 Connectivity:
 

@@ -18,8 +18,8 @@
 
 import sys
 
-from app import Correre
+from app import Fuga
 
 if __name__ == '__main__':
-    app = Correre()
+    app = Fuga()
     app.run(sys.argv)

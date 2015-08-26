@@ -25,14 +25,14 @@ from fakegarmin import FakeGarmin
 from garmin import Garmin
 from devicequeue import GarminQueue
 
-CONFIG_PATH = os.path.join(GLib.get_user_config_dir(), 'correre', 'correre.ini')
+CONFIG_PATH = os.path.join(GLib.get_user_config_dir(), 'fuga', 'fuga.ini')
 
-class Correre(Gtk.Application):
+class Fuga(Gtk.Application):
     def __init__(self):
-        Gtk.Application.__init__(self, application_id='com.jonnylamb.Correre',
+        Gtk.Application.__init__(self, application_id='com.jonnylamb.Fuga',
                                  flags=Gio.ApplicationFlags.FLAGS_NONE)
 
-        GLib.set_application_name('Correre')
+        GLib.set_application_name('Fuga')
 
         self.connect('activate', self.activate_cb)
 
