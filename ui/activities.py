@@ -429,6 +429,9 @@ class UploadInfoBar(Gtk.InfoBar):
     def __init__(self):
         Gtk.InfoBar.__init__(self)
 
+        self.uploader = None
+        self.status_changed_id = 0
+
         self.set_no_show_all(True)
         self.connect('response', self.response_cb)
         self.uploader = None
@@ -457,8 +460,11 @@ class UploadInfoBar(Gtk.InfoBar):
         self.button.set_sensitive(False)
 
     def start(self, uploader):
+        if self.uploader and self.status_changed_id:
+            self.uploader.disconnect(self.status_changed_id)
+
         self.uploader = uploader
-        uploader.connect('status-changed', self.status_changed_cb)
+        self.status_changed_id = uploader.connect('status-changed', self.status_changed_cb)
 
         self.spinner.start()
         self.show()
