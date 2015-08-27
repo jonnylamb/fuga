@@ -386,10 +386,6 @@ class ActivityRow(Gtk.ListBoxRow, Activity):
         self.connect('status-changed', self.status_changed_cb)
         self.status_changed_cb(self, self.status)
 
-    def upload_to_strava(self):
-        dialog = UploadDialog(self)
-        dialog.show_all()
-
     def set_image_from_sport(self, image, size):
         # TODO: use some sensible icons here
         if self.sport == 'swimming':
@@ -566,6 +562,8 @@ class StravaAuthDialog(Gtk.Dialog):
                     self.app.config.save()
 
                     self.emit('response', Gtk.ResponseType.ACCEPT)
+                else:
+                    self.emit('response', Gtk.ResponseType.REJECT)
 
 class ActivityMissingDetails(Gtk.Grid):
     def __init__(self, activity):
@@ -900,7 +898,7 @@ class ActivityDetails(Gtk.Box):
 
     def auth_dialog_response_cb(self, dialog, response_id):
         if response_id == Gtk.ResponseType.ACCEPT:
-            self.activity.upload_to_strava()
+            self.upload_view_clicked_cb(self.upload_button)
 
         dialog.destroy()
 
