@@ -517,7 +517,7 @@ class StravaAuthDialog(Gtk.Dialog):
         headerbar.pack_end(close_button)
 
         self.set_modal(True)
-        self.set_size_request(600, 600)
+        self.set_size_request(800, 800)
 
         content = self.get_content_area()
 
