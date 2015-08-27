@@ -466,6 +466,9 @@ class UploadInfoBar(Gtk.InfoBar):
         self.uploader = uploader
         self.status_changed_id = uploader.connect('status-changed', self.status_changed_cb)
 
+        self.image.hide()
+
+        self.spinner.show()
         self.spinner.start()
         self.show()
 
@@ -474,6 +477,9 @@ class UploadInfoBar(Gtk.InfoBar):
 
     def status_changed_cb(self, uploader, status):
         icon_name = 'dialog-error-symbolic'
+        if status == strava.Uploader.Status.UPLOADING:
+            self.label.set_text('Uploading...')
+            return
         if status == strava.Uploader.Status.WAITING:
             self.label.set_text('Waiting for Strava to process activity...')
             return
