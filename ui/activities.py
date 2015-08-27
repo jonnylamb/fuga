@@ -482,6 +482,8 @@ class UploadInfoBar(Gtk.InfoBar):
             self.label.set_text('Failed to upload: {}'.format(uploader.error))
         elif status == strava.Uploader.Status.DUPLICATE:
             self.label.set_text('Failed to upload: activity already uploaded.')
+        elif status == strava.Uploader.Status.AUTH_ERROR:
+            self.label.set_text('Failed to authenticate with Strava; try again.')
         else:
             return
 
@@ -858,11 +860,12 @@ class ActivityDetails(Gtk.Box):
             url = strava.ACTIVITY_URL.format(self.activity.strava_id)
             Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
         else:
-            if self.activity.app.config.has_option('strava', 'access_token'):
+            if self.activity.app.config.has_option('strava', 'access_token') and \
+               self.activity.app.config.get('strava', 'access_token'):
+
                 uploader = self.activity.upload()
                 uploader.start()
-                uploader.connect('status-changed',
-                    lambda *x: self.strava_id_updated_cb(None, None))
+                uploader.connect('status-changed', self.uploader_status_changed_cb)
 
                 self.infobar.start(uploader)
                 self.infobar.connect('response',
@@ -873,10 +876,21 @@ class ActivityDetails(Gtk.Box):
             else:
                 dialog = StravaAuthDialog(self.activity.app)
                 dialog.connect('response', self.auth_dialog_response_cb)
-                dialog.set_transient_for(self.activity.window)
+                toplevel = self.activity.window.get_toplevel()
+                dialog.set_transient_for(toplevel)
                 dialog.show_all()
 
     def uploader_status_changed_cb(self, uploader, status):
+        if status == strava.Uploader.Status.AUTH_ERROR:
+            self.activity.app.config.set('strava', 'access_token', '')
+            self.activity.app.config.save()
+
+        if status in (strava.Uploader.Status.DONE,
+                      strava.Uploader.Status.ERROR,
+                      strava.Uploader.Status.DUPLICATE,
+                      strava.Uploader.Status.AUTH_ERROR):
+            self.upload_button.set_sensitive(True)
+
         self.strava_id_updated_cb(None, None)
 
     def strava_id_updated_cb(self, activity, new_id):

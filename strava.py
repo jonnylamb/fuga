@@ -37,6 +37,7 @@ class Uploader(GObject.GObject):
         DONE = 3
         ERROR = 4
         DUPLICATE = 5
+        AUTH_ERROR = 6
 
     @GObject.Signal(arg_types=(int,))
     def status_changed(self, status):
@@ -109,6 +110,11 @@ class Uploader(GObject.GObject):
             data = json.loads(raw)
         except Exception as e:
             self.error_from_exception(e)
+            return
+
+        message = data.get('message', None)
+        if message == 'Authorization Error':
+            self.change_status(Uploader.Status.AUTH_ERROR)
             return
 
         self.id = data['id']

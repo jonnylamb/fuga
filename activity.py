@@ -185,7 +185,8 @@ class Activity(GObject.GObject):
 
             if status in (strava.Uploader.Status.DONE,
                     strava.Uploader.Status.ERROR,
-                    strava.Uploader.Status.DUPLICATE):
+                    strava.Uploader.Status.DUPLICATE,
+                    strava.Uploader.Status.AUTH_ERROR):
                 self.uploader = None
 
         self.uploader.connect('status-changed', status_changed_cb)
