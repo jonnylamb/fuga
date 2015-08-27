@@ -894,9 +894,7 @@ class ActivityDetails(Gtk.Box):
             self.activity.app.config.set('strava', 'access_token', '')
             self.activity.app.config.save()
 
-        if status in (strava.Uploader.Status.DONE,
-                      strava.Uploader.Status.ERROR,
-                      strava.Uploader.Status.DUPLICATE,
+        if status in (strava.Uploader.Status.DUPLICATE,
                       strava.Uploader.Status.AUTH_ERROR):
             self.upload_button.set_sensitive(True)
 
