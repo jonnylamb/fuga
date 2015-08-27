@@ -864,8 +864,10 @@ class ActivityDetails(Gtk.Box):
             url = strava.ACTIVITY_URL.format(self.activity.strava_id)
             Gtk.show_uri(None, url, Gdk.CURRENT_TIME)
         else:
-            if self.activity.app.config.has_option('strava', 'access_token') and \
-               self.activity.app.config.get('strava', 'access_token'):
+            config = self.activity.app.config
+
+            if config.has_option('strava', 'access_token') and \
+               config.get('strava', 'access_token'):
 
                 uploader = self.activity.upload()
                 uploader.start()
