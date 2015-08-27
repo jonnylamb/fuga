@@ -880,9 +880,6 @@ class ActivityDetails(Gtk.Box):
                 uploader.connect('status-changed', self.uploader_status_changed_cb)
 
                 self.infobar.start(uploader)
-                self.infobar.connect('response',
-                    lambda *x: self.strava_id_updated_cb(None, None))
-
                 button.set_sensitive(False)
 
             else:
@@ -902,8 +899,6 @@ class ActivityDetails(Gtk.Box):
                       strava.Uploader.Status.DUPLICATE,
                       strava.Uploader.Status.AUTH_ERROR):
             self.upload_button.set_sensitive(True)
-
-        self.strava_id_updated_cb(None, None)
 
     def strava_id_updated_cb(self, activity, new_id):
         if self.activity.strava_id:
