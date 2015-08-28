@@ -82,5 +82,4 @@ Design:
 * make queuing not really ugly
 * add "list current items" device as `fakegarmin`
 * rename `fakegarmin` to something like `dirlist` and add Edge 800 device
-* change activity directory, losing garmin-extractor compatibility (!)
 * make stack pages and headers link up, especially for the welcome page

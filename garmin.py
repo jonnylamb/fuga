@@ -188,7 +188,7 @@ class Garmin(ant.fs.manager.Application,
         ant.fs.manager.Application.__init__(self)
         GObject.GObject.__init__(self)
 
-        self.path = os.path.join(GLib.get_user_config_dir(), self.PRODUCT_NAME)
+        self.path = os.path.join(GLib.get_user_data_dir(), self.PRODUCT_NAME)
         utils.makedirs(self.path)
 
         self.status = Garmin.Status.NONE

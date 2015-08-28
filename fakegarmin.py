@@ -93,7 +93,7 @@ class FakeGarmin(GObject.GObject):
     def get_file_list(self):
         base_path = os.environ.get('FAKE_GARMIN_BASE_PATH', None)
         if not base_path:
-            base_path = os.path.join(GLib.get_user_config_dir(),
+            base_path = os.path.join(GLib.get_user_data_dir(),
                 'fuga', '3868484997')
 
         files = {}
