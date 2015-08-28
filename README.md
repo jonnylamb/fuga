@@ -32,12 +32,12 @@ appear to help get permission.
 Local storage
 -------------
 
-Device information is saved in the `$XDG_DATA_HOME/fuga/<device
-id>` (`$XDG_DATA_HOME` defaults to `~/.local/share`) folder. The
-activity FIT files are saved in the `activities` subfolder.
+Device information is saved in the `$XDG_DATA_HOME/fuga/<device id>`
+(`$XDG_DATA_HOME` defaults to `~/.local/share`) folder. The activity
+FIT files are saved in the `activities` subfolder.
 
-There is a small `fuga.ini` file saved in the
-`$XDG_CONFIG_HOME/fuga/` folder.
+There is a small `fuga.ini` file saved in the `$XDG_CONFIG_HOME/fuga/`
+folder.
 
 Known issues
 ------------
@@ -62,6 +62,7 @@ Todo list
 
 UI:
 
+* make loading stack page less ugly
 * display activity timings in the row?
 * use GtkBuilder
 * work out what to do with icons
@@ -71,6 +72,7 @@ UI:
 * move strava UI code out of `activities.py`
 * ensure champlain zoom level is correct (!)
 * make infobar go red on error
+* make no activities page less ugly
 
 Connectivity:
 
