@@ -762,12 +762,12 @@ class ActivityFailed(Gtk.Grid):
             title = 'Failed to parse file'
         else:
             title = 'Failed to download file'
-        label.set_markup('<span font="16">%s</span>' % title)
+        label.set_markup('<span font="16">{}</span>'.format(title))
         self.attach(label, 1, 0, 1, 1)
 
         label = Gtk.Label()
         if activity.status == Activity.Status.PARSE_FAILED:
-            markup = 'The file <tt>%s</tt> could not be parsed.' % activity.full_path
+            markup = 'The file <tt>{}</tt> could not be parsed.'.format(activity.full_path)
         elif activity.status == Activity.Status.DOWNLOAD_FAILED:
             markup  = 'The activity failed to download. You can try again.'
 
