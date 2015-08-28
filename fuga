@@ -18,6 +18,12 @@
 
 import sys
 
+# a check that these are set up correctly so we fail here instead of
+# further in the app
+import usb
+import ant
+import fitparse
+
 from app import Fuga
 
 if __name__ == '__main__':
