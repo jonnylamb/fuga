@@ -70,7 +70,6 @@ UI:
 * does deleting the last item break things? probably.
 * add a desktop file
 * move strava UI code out of `activities.py`
-* ensure champlain zoom level is correct (!)
 * make infobar go red on error
 * make no activities page less ugly
 

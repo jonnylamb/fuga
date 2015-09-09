@@ -939,8 +939,13 @@ class ActivityDetails(Gtk.Box):
             if layer.get_nodes():
                 view = self.embed.get_view()
                 view.add_layer(layer)
-                view.ensure_layers_visible(True)
-                view.set_property('zoom-level', 13)
+
+                # https://bugzilla.gnome.org/show_bug.cgi?id=754718
+                # for some reason connecting to to ::realize on view
+                # or embed isn't enough. in fact this idle only works
+                # most of the time but for now it's good enough.
+                view.set_zoom_level(15)
+                GLib.idle_add(lambda: view.ensure_layers_visible(False))
             else:
                 self.embed.destroy()
 
